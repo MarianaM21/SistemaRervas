@@ -15,7 +15,7 @@ public class AuthController {
     private final UserService userService;
 
 
-    @PostMapping("/register")
+     @PostMapping("/register")
     public ResponseEntity<UserResponseDTO> registerUser(@RequestBody UserRegisterDTO dto) {
         System.out.println("AuthController llamado con: " + dto.getEmail()); // <-- Para debug
         UserResponseDTO user = userService.register(dto);
