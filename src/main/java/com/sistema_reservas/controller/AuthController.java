@@ -1,5 +1,4 @@
 package com.sistema_reservas.controller;
-
 import com.sistema_reservas.controller.dto.UserRegisterDTO;
 import com.sistema_reservas.controller.dto.UserResponseDTO;
 import com.sistema_reservas.service.UserService;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
 
+    
     private final UserService userService;
 
 
