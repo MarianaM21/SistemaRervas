@@ -1,4 +1,4 @@
-package com.sistema_reservas_copia.model;
+package com.sistema_reservas.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
