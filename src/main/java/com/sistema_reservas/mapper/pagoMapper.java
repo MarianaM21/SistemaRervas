@@ -1,8 +1,8 @@
-package com.sistema_reservas_copia.mapper;
+package com.sistema_reservas.mapper;
 
-import com.sistema_reservas_copia.controller.dto.PagoDTO;
-import com.sistema_reservas_copia.controller.dto.PagoResponseDTO;
-import com.sistema_reservas_copia.model.Pago;
+import com.sistema_reservas.controller.dto.PagoDTO;
+import com.sistema_reservas.controller.dto.PagoResponseDTO;
+import com.sistema_reservas.model.Pago;
 import jakarta.validation.constraints.Null;
 
 public class pagoMapper {

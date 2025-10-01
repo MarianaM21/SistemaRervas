@@ -1,7 +1,7 @@
-package com.sistema_reservas_copia.dao;
+package com.sistema_reservas.dao;
 
 
-import com.sistema_reservas_copia.model.Reserva;
+import com.sistema_reservas.model.Reserva;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;

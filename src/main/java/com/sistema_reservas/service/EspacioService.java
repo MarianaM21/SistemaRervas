@@ -1,7 +1,7 @@
-package com.sistema_reservas_copia.service;
+package com.sistema_reservas.service;
 
-import com.sistema_reservas_copia.controller.dto.EspacioDTO;
-import com.sistema_reservas_copia.controller.dto.EspacioResponseDTO;
+import com.sistema_reservas.controller.dto.EspacioDTO;
+import com.sistema_reservas.controller.dto.EspacioResponseDTO;
 
 import java.util.List;
 

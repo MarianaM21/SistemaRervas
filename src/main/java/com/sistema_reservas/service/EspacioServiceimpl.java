@@ -1,12 +1,11 @@
-package com.sistema_reservas_copia.service;
+package com.sistema_reservas.service;
 
-import com.sistema_reservas_copia.controller.dto.EspacioResponseDTO;
+import com.sistema_reservas.controller.dto.EspacioResponseDTO;
 
-
-import com.sistema_reservas_copia.controller.dto.EspacioDTO;
-import com.sistema_reservas_copia.dao.espacioDAO;
-import com.sistema_reservas_copia.mapper.espacioMapper;
-import com.sistema_reservas_copia.model.Espacio;
+import com.sistema_reservas.controller.dto.EspacioDTO;
+import com.sistema_reservas.dao.espacioDAO;
+import com.sistema_reservas.mapper.espacioMapper;
+import com.sistema_reservas.model.Espacio;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

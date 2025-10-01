@@ -1,9 +1,9 @@
-package com.sistema_reservas_copia.service;
+package com.sistema_reservas.service;
 
-import com.sistema_reservas_copia.controller.dto.UserRegisterDTO;
-import com.sistema_reservas_copia.controller.dto.UserResponseRegisterDTO;
-import com.sistema_reservas_copia.controller.dto.UserLoginDTO;
-import com.sistema_reservas_copia.controller.dto.LoginResponseDTO;
+import com.sistema_reservas.controller.dto.UserRegisterDTO;
+import com.sistema_reservas.controller.dto.UserResponseRegisterDTO;
+import com.sistema_reservas.controller.dto.UserLoginDTO;
+import com.sistema_reservas.controller.dto.LoginResponseDTO;
 
 public interface UserService {
     UserResponseRegisterDTO registerUser(UserRegisterDTO dto);

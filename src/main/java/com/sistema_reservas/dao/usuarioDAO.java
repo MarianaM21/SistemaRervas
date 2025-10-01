@@ -1,8 +1,8 @@
-package com.sistema_reservas_copia.dao;
+package com.sistema_reservas.dao;
 
 
 import jakarta.persistence.EntityManager;
-import com.sistema_reservas_copia.model.usuarios;
+import com.sistema_reservas.model.Usuario;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
@@ -17,37 +17,37 @@ public class usuarioDAO {
     private EntityManager entityManager;
 
     // Buscar usuario por ID
-    public usuarios buscarPorId(Long id) {
-        return entityManager.find(usuarios.class, id);
+    public Usuario buscarPorId(Long id) {
+        return entityManager.find(Usuario.class, id);
     }
 
     // Buscar usuario por correo
-    public usuarios buscarPorCorreo(String email) {
+    public Usuario buscarPorCorreo(String email) {
         String jpql = "SELECT u FROM Usuario u WHERE u.email = :email";
-        return entityManager.createQuery(jpql, usuarios.class)
+        return entityManager.createQuery(jpql, Usuario.class)
                 .setParameter("email", email)
                 .getSingleResult();
     }
 
     // Listar todos los usuarios
-    public List<usuarios> listarTodos() {
+    public List<Usuario> listarTodos() {
         String jpql = "SELECT u FROM Usuario u";
-        return entityManager.createQuery(jpql, usuarios.class).getResultList();
+        return entityManager.createQuery(jpql, Usuario.class).getResultList();
     }
 
     // Guardar usuario
-    public void guardar(usuarios usuario) {
+    public void guardar(Usuario usuario) {
         entityManager.persist(usuario);
     }
 
     // Actualizar usuario
-    public usuarios actualizar(usuarios usuario) {
+    public Usuario actualizar(Usuario usuario) {
         return entityManager.merge(usuario);
     }
 
     // Eliminar usuario
     public void eliminar(Long id) {
-        usuarios usuario = entityManager.find(usuarios.class, id);
+        Usuario usuario = entityManager.find(Usuario.class, id);
         if (usuario != null) {
             entityManager.remove(usuario);
         }

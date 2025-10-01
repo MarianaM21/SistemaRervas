@@ -1,4 +1,4 @@
-package com.sistema_reservas_copia.controller.dto;
+package com.sistema_reservas.controller.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

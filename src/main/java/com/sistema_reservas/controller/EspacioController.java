@@ -1,8 +1,8 @@
-package com.sistema_reservas_copia.controller;
+package com.sistema_reservas.controller;
 
-import com.sistema_reservas_copia.controller.dto.EspacioDTO;
-import com.sistema_reservas_copia.controller.dto.EspacioResponseDTO;
-import com.sistema_reservas_copia.service.EspacioService;
+import com.sistema_reservas.controller.dto.EspacioDTO;
+import com.sistema_reservas.controller.dto.EspacioResponseDTO;
+import com.sistema_reservas.service.EspacioService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

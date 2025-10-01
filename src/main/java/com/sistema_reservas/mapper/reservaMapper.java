@@ -1,10 +1,10 @@
-package com.sistema_reservas_copia.mapper;
+package com.sistema_reservas.mapper;
 
-import com.sistema_reservas_copia.controller.dto.ReservaDTO;
-import com.sistema_reservas_copia.controller.dto.ReservaResponseDTO;
-import com.sistema_reservas_copia.model.Reserva;
-import com.sistema_reservas_copia.model.usuarios;
-import com.sistema_reservas_copia.model.Espacio;
+import com.sistema_reservas.controller.dto.ReservaDTO;
+import com.sistema_reservas.controller.dto.ReservaResponseDTO;
+import com.sistema_reservas.model.Reserva;
+import com.sistema_reservas.model.Usuario;
+import com.sistema_reservas.model.Espacio;
 
 public class reservaMapper {
 
@@ -20,7 +20,7 @@ public class reservaMapper {
         );
     }
 
-    public static Reserva toEntity(ReservaDTO dto, usuarios usuario, Espacio espacio) {
+    public static Reserva toEntity(ReservaDTO dto, Usuario usuario, Espacio espacio) {
         if (dto == null) return null;
         Reserva reserva = new Reserva();
         reserva.setUsuario(usuario);

@@ -1,8 +1,8 @@
-package com.sistema_reservas_copia.mapper;
+package com.sistema_reservas.mapper;
 
-import com.sistema_reservas_copia.controller.dto.EspacioDTO;
-import com.sistema_reservas_copia.controller.dto.EspacioResponseDTO;
-import com.sistema_reservas_copia.model.Espacio;
+import com.sistema_reservas.controller.dto.EspacioDTO;
+import com.sistema_reservas.controller.dto.EspacioResponseDTO;
+import com.sistema_reservas.model.Espacio;
 
 public class espacioMapper {
 

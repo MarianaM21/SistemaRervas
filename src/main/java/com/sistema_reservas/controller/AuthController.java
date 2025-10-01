@@ -1,10 +1,10 @@
-package com.sistema_reservas_copia.controller;
+package com.sistema_reservas.controller;
 
-import com.sistema_reservas_copia.controller.dto.UserRegisterDTO;
-import com.sistema_reservas_copia.controller.dto.UserResponseRegisterDTO;
-import com.sistema_reservas_copia.controller.dto.UserLoginDTO;
-import com.sistema_reservas_copia.controller.dto.LoginResponseDTO;
-import com.sistema_reservas_copia.service.UserService;
+import com.sistema_reservas.controller.dto.UserRegisterDTO;
+import com.sistema_reservas.controller.dto.UserResponseRegisterDTO;
+import com.sistema_reservas.controller.dto.UserLoginDTO;
+import com.sistema_reservas.controller.dto.LoginResponseDTO;
+import com.sistema_reservas.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

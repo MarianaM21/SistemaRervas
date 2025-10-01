@@ -1,4 +1,4 @@
-package com.sistema_reservas_copia.controller.dto;
+package com.sistema_reservas.controller.dto;
 
 import lombok.Data;
 

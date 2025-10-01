@@ -1,4 +1,4 @@
-package com.sistema_reservas_copia.model;
+package com.sistema_reservas.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -9,12 +9,12 @@ public class Reserva {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_reserva")
+    @Column(name = "reserva_id")
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "id_usuario")
-    private usuarios usuario;
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
 
     @ManyToOne
     @JoinColumn(name = "id_espacio")
@@ -26,7 +26,7 @@ public class Reserva {
 
     public Reserva() {}
 
-    public Reserva(usuarios usuario, Espacio espacio, LocalDateTime fechaInicio, LocalDateTime fechaFin, String estado) {
+    public Reserva(Usuario usuario, Espacio espacio, LocalDateTime fechaInicio, LocalDateTime fechaFin, String estado) {
         this.usuario = usuario;
         this.espacio = espacio;
         this.fechaInicio = fechaInicio;
@@ -38,8 +38,8 @@ public class Reserva {
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public usuarios getUsuario() { return usuario; }
-    public void setUsuario(usuarios usuario) { this.usuario = usuario; }
+    public Usuario getUsuario() { return usuario; }
+    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
 
     public Espacio getEspacio() { return espacio; }
     public void setEspacio(Espacio espacio) { this.espacio = espacio; }

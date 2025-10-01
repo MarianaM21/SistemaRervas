@@ -1,6 +1,6 @@
-package com.sistema_reservas_copia.repository;
+package com.sistema_reservas.repository;
 
-import com.sistema_reservas_copia.model.Espacio;
+import com.sistema_reservas.model.Espacio;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

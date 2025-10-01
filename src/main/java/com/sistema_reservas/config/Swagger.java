@@ -1,4 +1,4 @@
-package com.sistema_reservas_copia.config;
+package com.sistema_reservas.config;
 
 //configuracion de la api
 import org.springdoc.core.models.GroupedOpenApi;

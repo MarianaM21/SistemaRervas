@@ -1,11 +1,11 @@
-package com.sistema_reservas_copia.service;
+package com.sistema_reservas.service;
 
-import com.sistema_reservas_copia.controller.dto.UserRegisterDTO;
-import com.sistema_reservas_copia.controller.dto.UserResponseRegisterDTO;
-import com.sistema_reservas_copia.controller.dto.UserLoginDTO;
-import com.sistema_reservas_copia.controller.dto.LoginResponseDTO;
-import com.sistema_reservas_copia.model.usuarios;
-import com.sistema_reservas_copia.repository.UserRepository;
+import com.sistema_reservas.controller.dto.UserRegisterDTO;
+import com.sistema_reservas.controller.dto.UserResponseRegisterDTO;
+import com.sistema_reservas.controller.dto.UserLoginDTO;
+import com.sistema_reservas.controller.dto.LoginResponseDTO;
+import com.sistema_reservas.model.Usuario;
+import com.sistema_reservas.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +21,7 @@ public class UserServiceimpl implements UserService {
             throw new RuntimeException("El usuario ya existe");
         }
 
-        usuarios user = new usuarios();
+        Usuario user = new Usuario();
         user.setNombre(dto.getNombre());
         user.setEmail(dto.getEmail());
         user.setPassword(dto.getPassword());
@@ -39,7 +39,7 @@ public class UserServiceimpl implements UserService {
 
     @Override
     public LoginResponseDTO login(UserLoginDTO dto) {
-        usuarios user = userRepository.findByEmail(dto.getEmail())
+        Usuario user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         if (!user.getPassword().equals(dto.getPassword())) {

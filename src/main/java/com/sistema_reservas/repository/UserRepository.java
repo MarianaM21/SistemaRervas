@@ -1,13 +1,13 @@
-package com.sistema_reservas_copia.repository;
+package com.sistema_reservas.repository;
 
-import com.sistema_reservas_copia.model.usuarios;
+import com.sistema_reservas.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<usuarios, Long> {
+public interface UserRepository extends JpaRepository<Usuario, Long> {
     boolean existsByEmail(String email);
-    Optional<usuarios> findByEmail(String email);
+    Optional<Usuario> findByEmail(String email);
 }
 

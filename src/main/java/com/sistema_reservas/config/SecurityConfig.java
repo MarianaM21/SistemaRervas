@@ -1,4 +1,4 @@
-package com.sistema_reservas_copia.config;
+package com.sistema_reservas.config;
 
 public class SecurityConfig {
 }
