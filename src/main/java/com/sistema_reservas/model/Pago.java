@@ -1,8 +1,8 @@
 package com.sistema_reservas.model;
 
-
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+
 
 @Entity
 @Table(name = "pago")
@@ -15,29 +15,18 @@ public class Pago {
 
     private double monto;
     private String estado; // Pendiente, Confirmado, Cancelado
+    private LocalDateTime fechaPago;
+    private String metodo;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_reserva")
     private Reserva reserva;
 
-    private LocalDateTime fechaPago;
-
-    private String metodo;
-
-    public String getMetodo() { return metodo; }
-    public void setMetodo(String metodo) { this.metodo = metodo; }
-
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "factura_id")
+    private Factura factura;
 
     public Pago() {}
-
-    public Pago(double monto, String estado, Reserva reserva, LocalDateTime fechaPago) {
-        this.monto = monto;
-        this.estado = estado;
-        this.metodo = metodo;
-        this.reserva = reserva;
-        this.fechaPago = fechaPago;
-
-    }
 
     // Getters y setters
     public Long getId() { return id; }
@@ -49,9 +38,16 @@ public class Pago {
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
 
+    public LocalDateTime getFechaPago() { return fechaPago; }
+    public void setFechaPago(LocalDateTime fechaPago) { this.fechaPago = fechaPago; }
+
+    public String getMetodo() { return metodo; }
+    public void setMetodo(String metodo) { this.metodo = metodo; }
+
     public Reserva getReserva() { return reserva; }
     public void setReserva(Reserva reserva) { this.reserva = reserva; }
 
-    public LocalDateTime getFechaPago() { return fechaPago; }
-    public void setFechaPago(LocalDateTime fechaPago) { this.fechaPago = fechaPago; }
+    public Factura getFactura() { return factura; }
+    public void setFactura(Factura factura) { this.factura = factura; }
 }
+

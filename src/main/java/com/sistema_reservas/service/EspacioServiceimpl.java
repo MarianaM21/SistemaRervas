@@ -20,20 +20,21 @@ public class EspacioServiceimpl implements EspacioService {
         this.espacioDAO = espacioDAO;
     }
 
+//guardar un espacio
     @Override
     public EspacioResponseDTO guardarEspacio(EspacioDTO dto) {
         Espacio e = espacioMapper.toEntity(dto);
         espacioDAO.guardar(e);
         return espacioMapper.toResponseDTO(e, "Espacio guardado exitosamente");
     }
-
+//listar todos los espacios
     @Override
     public List<EspacioResponseDTO> listarEspacios() {
         return espacioDAO.listarTodos().stream()
                 .map(e -> espacioMapper.toResponseDTO(e, ""))
                 .collect(Collectors.toList());
     }
-
+//actalizar espacio
     @Override
     public EspacioResponseDTO actualizarEspacio(Long id, EspacioDTO dto) {
         Espacio e = espacioDAO.buscarPorId(id);
@@ -45,12 +46,13 @@ public class EspacioServiceimpl implements EspacioService {
         espacioDAO.actualizar(e);
         return espacioMapper.toResponseDTO(e, "Espacio actualizado exitosamente");
     }
-
+//eliminar espacio
     @Override
     public void eliminarEspacio(Long id) {
         espacioDAO.eliminar(id);
     }
 
+//buscar espacio por id
     @Override
     public EspacioResponseDTO buscarPorId(Long id) {
         Espacio e = espacioDAO.buscarPorId(id);

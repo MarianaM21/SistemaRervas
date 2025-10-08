@@ -5,14 +5,19 @@ public class usuarioDTO {
     private Long id;
     private String nombre;
     private String email;
-    private String rol; // opcional, si manejas roles
+    private String rol;
+    private String mensaje;
 
-    public usuarioDTO(Long id, String nombre, String email, String rol) {
+
+
+    public usuarioDTO(Long id, String nombre, String email, String rol, String mensaje) {
         this.id = id;
         this.nombre = nombre;
         this.email = email;
         this.rol = rol;
+        this.mensaje = mensaje;
     }
+
 
     // Getters y setters
     public Long getId() { return id; }
@@ -24,6 +29,11 @@ public class usuarioDTO {
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
+
     public String getRol() { return rol; }
     public void setRol(String rol) { this.rol = rol; }
+
+    public String getMensaje() { return mensaje;}
+    public void setMensaje(String mensaje) { this.mensaje = mensaje; }
 }
+

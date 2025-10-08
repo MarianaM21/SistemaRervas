@@ -1,6 +1,5 @@
 package com.sistema_reservas.dao;
 
-
 import com.sistema_reservas.model.Reserva;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -17,46 +16,40 @@ public class reservaDAO {
     @PersistenceContext
     private EntityManager entityManager;
 
-    // Reservas activas de un usuario
-    public List<Reserva> obtenerReservasActivasPorUsuario(Long idUsuario) {
-        String jpql = "SELECT r FROM Reserva r WHERE r.usuario.id = :idUsuario AND r.estado = 'ACTIVA'";
-        return entityManager.createQuery(jpql, Reserva.class)
-                .setParameter("idUsuario", idUsuario)
-                .getResultList();
+    public List<Reserva> listarReservas() {
+        return entityManager.createQuery("FROM Reserva", Reserva.class).getResultList();
     }
 
-    // Pagos pendientes (si reservas tienen estado "PENDIENTE")
-    public List<Reserva> obtenerPagosPendientes(Long idUsuario) {
-        String jpql = "SELECT r FROM Reserva r WHERE r.usuario.id = :idUsuario AND r.estado = 'PENDIENTE'";
-        return entityManager.createQuery(jpql, Reserva.class)
-                .setParameter("idUsuario", idUsuario)
-                .getResultList();
+    public Reserva obtenerPorId(Long id) {
+        return entityManager.find(Reserva.class, id);
     }
 
-    // Reservas futuras
-    public List<Reserva> obtenerReservasFuturas(Long idUsuario) {
-        String jpql = "SELECT r FROM Reserva r WHERE r.usuario.id = :idUsuario AND r.fechaFin > :hoy";
-        return entityManager.createQuery(jpql, Reserva.class)
-                .setParameter("idUsuario", idUsuario)
-                .setParameter("hoy", LocalDateTime.now())
-                .getResultList();
+    public Reserva guardarReserva(Reserva reserva) {
+        if (reserva.getId_reserva() == null) {
+            entityManager.persist(reserva);
+            return reserva;
+        } else {
+            return entityManager.merge(reserva);
+        }
     }
 
-    // Guardar reserva
-    public void guardar(Reserva reserva) {
-        entityManager.persist(reserva);
-    }
-
-    // Actualizar reserva
-    public Reserva actualizar(Reserva reserva) {
-        return entityManager.merge(reserva);
-    }
-
-    // Eliminar reserva
-    public void eliminar(Long idReserva) {
-        Reserva reserva = entityManager.find(Reserva.class, idReserva);
+    public void eliminarReserva(Long id) {
+        Reserva reserva = obtenerPorId(id);
         if (reserva != null) {
             entityManager.remove(reserva);
         }
     }
+    public List<Reserva> listarPorEstadoYFecha(String estado, LocalDateTime fecha) {
+        StringBuilder sb = new StringBuilder("FROM Reserva r WHERE 1=1 ");
+        if (estado != null) sb.append("AND r.estado = :estado ");
+        if (fecha != null) sb.append("AND r.fecha = :fecha ");
+
+        var query = entityManager.createQuery(sb.toString(), Reserva.class);
+
+        if (estado != null) query.setParameter("estado", estado);
+        if (fecha != null) query.setParameter("fecha", fecha);
+
+        return query.getResultList();
+    }
+
 }

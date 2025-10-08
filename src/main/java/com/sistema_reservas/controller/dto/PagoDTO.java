@@ -1,23 +1,28 @@
 package com.sistema_reservas.controller.dto;
 
+import java.time.LocalDateTime;
+
 public class PagoDTO {
-    private Long reservaId;
-    private Double monto;
+    private double monto;
     private String metodo;
+    private String estado;
 
-    public PagoDTO() {}
+    private LocalDateTime fechaPago;
+    private Long reservaId;
 
-    public PagoDTO(Long reservaId, Double monto, String metodo) {
-        this.reservaId = reservaId;
-        this.monto = monto;
-        this.metodo = metodo;
-    }
+
+    // Getters y setters
+    public double getMonto() { return monto; }
+    public void setMonto(double monto) { this.monto = monto; }
+
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
 
     public Long getReservaId() { return reservaId; }
     public void setReservaId(Long reservaId) { this.reservaId = reservaId; }
 
-    public Double getMonto() { return monto; }
-    public void setMonto(Double monto) { this.monto = monto; }
+    public LocalDateTime getFechaPago() { return fechaPago; }
+    public void setFechaPago(LocalDateTime fechaPago) { this.fechaPago = fechaPago; }
 
     public String getMetodo() { return metodo; }
     public void setMetodo(String metodo) { this.metodo = metodo; }
