@@ -38,7 +38,7 @@ public class EspacioController {
         espacioService.eliminarEspacio(id);
         return ResponseEntity.ok("Espacio eliminado exitosamente");
     }
-
+//buscar por id
     @GetMapping("/{id}")
     public ResponseEntity<EspacioResponseDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(espacioService.buscarPorId(id));

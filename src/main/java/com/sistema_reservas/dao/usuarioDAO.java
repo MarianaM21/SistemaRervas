@@ -23,10 +23,14 @@ public class usuarioDAO {
 
     // Buscar usuario por correo
     public Usuario buscarPorCorreo(String email) {
-        String jpql = "SELECT u FROM Usuario u WHERE u.email = :email";
-        return entityManager.createQuery(jpql, Usuario.class)
-                .setParameter("email", email)
-                .getSingleResult();
+        try {
+            String jpql = "SELECT u FROM Usuario u WHERE u.email = :email";
+            return entityManager.createQuery(jpql, Usuario.class)
+                    .setParameter("email", email)
+                    .getSingleResult();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     // Listar todos los usuarios
@@ -52,4 +56,5 @@ public class usuarioDAO {
             entityManager.remove(usuario);
         }
     }
+
 }

@@ -9,47 +9,41 @@ public class Reserva {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "reserva_id")
-    private Long id;
+    @Column(name = "id_reserva")
+    private Long id_reserva;
 
-    @ManyToOne
-    @JoinColumn(name = "usuario_id")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
-    @ManyToOne
-    @JoinColumn(name = "id_espacio")
+    @Column(name = "estado", nullable = false)
+    private String estado;
+
+    @Column(name = "Fecha", nullable = false)
+    private LocalDateTime fecha;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "espacio_id", nullable = false)
     private Espacio espacio;
 
-    private LocalDateTime fechaInicio;
-    private LocalDateTime fechaFin;
-    private String estado; // ACTIVA, PENDIENTE, CANCELADA, etc.
+
 
     public Reserva() {}
 
-    public Reserva(Usuario usuario, Espacio espacio, LocalDateTime fechaInicio, LocalDateTime fechaFin, String estado) {
-        this.usuario = usuario;
-        this.espacio = espacio;
-        this.fechaInicio = fechaInicio;
-        this.fechaFin = fechaFin;
-        this.estado = estado;
-    }
-
     // Getters y setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Espacio getEspacio() { return espacio; }
+    public void setEspacio(Espacio espacio) { this.espacio = espacio; }
+
+    public Long getId_reserva() { return id_reserva; }
+    public void setId_reserva(Long id_reserva) { this.id_reserva = id_reserva; }
 
     public Usuario getUsuario() { return usuario; }
     public void setUsuario(Usuario usuario) { this.usuario = usuario; }
 
-    public Espacio getEspacio() { return espacio; }
-    public void setEspacio(Espacio espacio) { this.espacio = espacio; }
-
-    public LocalDateTime getFechaInicio() { return fechaInicio; }
-    public void setFechaInicio(LocalDateTime fechaInicio) { this.fechaInicio = fechaInicio; }
-
-    public LocalDateTime getFechaFin() { return fechaFin; }
-    public void setFechaFin(LocalDateTime fechaFin) { this.fechaFin = fechaFin; }
-
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+
+    public LocalDateTime getFecha() { return fecha; }
+    public void setFecha(LocalDateTime fecha) { this.fecha = fecha; }
 }
+

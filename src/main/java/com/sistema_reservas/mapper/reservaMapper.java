@@ -3,32 +3,41 @@ package com.sistema_reservas.mapper;
 import com.sistema_reservas.controller.dto.ReservaDTO;
 import com.sistema_reservas.controller.dto.ReservaResponseDTO;
 import com.sistema_reservas.model.Reserva;
-import com.sistema_reservas.model.Usuario;
-import com.sistema_reservas.model.Espacio;
+import org.springframework.stereotype.Component;
 
+@Component
 public class reservaMapper {
 
-    public static ReservaResponseDTO toResponseDTO(Reserva reserva) {
-        return new ReservaResponseDTO(
-                reserva.getId(),
-                reserva.getUsuario() != null ? reserva.getUsuario().getId() : null,
-                reserva.getEspacio() != null ? reserva.getEspacio().getIdEspacio() : null,
-                reserva.getFechaInicio(),
-                reserva.getFechaFin(),
-                reserva.getEstado(),
-                ""
-        );
-    }
-
-    public static Reserva toEntity(ReservaDTO dto, Usuario usuario, Espacio espacio) {
-        if (dto == null) return null;
+    // De DTO a entidad
+    public Reserva toEntity(ReservaDTO dto) {
         Reserva reserva = new Reserva();
-        reserva.setUsuario(usuario);
-        reserva.setEspacio(espacio);
-        reserva.setFechaInicio(dto.getFechaInicio());
-        reserva.setFechaFin(dto.getFechaFin());
+        reserva.setId_reserva(dto.getId_reserva());
+        reserva.setFecha(dto.getFecha());
         reserva.setEstado(dto.getEstado());
         return reserva;
     }
-}
 
+    // De entidad a DTO
+    public ReservaDTO toDTO(Reserva reserva) {
+        ReservaDTO dto = new ReservaDTO();
+        dto.setId_reserva(reserva.getId_reserva());
+        dto.setUsuarioId(reserva.getUsuario() != null ? reserva.getUsuario().getId() : null);
+        dto.setEspacioId(reserva.getEspacio() != null ? reserva.getEspacio().getIdEspacio() : null);
+        dto.setFecha(reserva.getFecha());
+        dto.setEstado(reserva.getEstado());
+        return dto;
+    }
+
+    // De entidad a ResponseDTO
+    public ReservaResponseDTO toResponseDTO(Reserva reserva) {
+        return new ReservaResponseDTO(
+                reserva.getId_reserva(),
+                reserva.getUsuario() != null ? reserva.getUsuario().getId() : null,
+                reserva.getUsuario() != null ? reserva.getUsuario().getNombre() : null,
+                reserva.getEspacio() != null ? reserva.getEspacio().getIdEspacio() : null,
+                reserva.getEspacio() != null ? reserva.getEspacio().getNombre() : null,
+                reserva.getFecha(),
+                reserva.getEstado()
+        );
+    }
+}

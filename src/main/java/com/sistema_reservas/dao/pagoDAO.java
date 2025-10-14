@@ -1,10 +1,10 @@
 package com.sistema_reservas.dao;
 
 import com.sistema_reservas.model.Pago;
+import org.springframework.stereotype.Repository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
@@ -15,50 +15,44 @@ public class pagoDAO {
     @PersistenceContext
     private EntityManager entityManager;
 
-    // Buscar pago por ID
-    public Pago buscarPorId(Long id) {
-        return entityManager.find(Pago.class, id);
+    public Pago guardarPago(Pago pago) {
+        if (pago.getId() == null) {
+            entityManager.persist(pago);
+            return pago;
+        } else {
+            return entityManager.merge(pago);
+        }
     }
 
-    // Pagos pendientes de una reserva
-    public List<Pago> obtenerPagosPendientesPorReserva(Long idReserva) {
-        String jpql = "SELECT p FROM Pago p WHERE p.reserva.id = :idReserva AND p.estado = 'PENDIENTE'";
-        return entityManager.createQuery(jpql, Pago.class)
-                .setParameter("idReserva", idReserva)
+    public Pago obtenerPagoPorId(Long id) {
+        return entityManager.createQuery(
+                        "SELECT p FROM Pago p " +
+                                "JOIN FETCH p.reserva r " +
+                                "JOIN FETCH r.usuario u " +
+                                "JOIN FETCH r.espacio e " +
+                                "WHERE p.id = :id", Pago.class)
+                .setParameter("id", id)
+                .getSingleResult();
+    }
+
+    public List<Pago> listarPagos() {
+        return entityManager.createQuery(
+                        "SELECT p FROM Pago p " +
+                                "JOIN FETCH p.reserva r " +
+                                "JOIN FETCH r.usuario u " +
+                                "JOIN FETCH r.espacio e", Pago.class)
                 .getResultList();
     }
 
-    // Pagos confirmados de una reserva
-    public List<Pago> obtenerPagosConfirmadosPorReserva(Long idReserva) {
-        String jpql = "SELECT p FROM Pago p WHERE p.reserva.id = :idReserva AND p.estado = 'CONFIRMADO'";
-        return entityManager.createQuery(jpql, Pago.class)
-                .setParameter("idReserva", idReserva)
-                .getResultList();
-    }
-
-    // Listar todos los pagos de un usuario (a través de reserva → usuario)
-    public List<Pago> obtenerPagosPorUsuario(Long idUsuario) {
-        String jpql = "SELECT p FROM Pago p WHERE p.reserva.usuario.id = :idUsuario";
-        return entityManager.createQuery(jpql, Pago.class)
-                .setParameter("idUsuario", idUsuario)
-                .getResultList();
-    }
-
-    // Guardar un pago
-    public void guardar(Pago pago) {
-        entityManager.persist(pago);
-    }
-
-    // Actualizar un pago
     public Pago actualizar(Pago pago) {
         return entityManager.merge(pago);
     }
 
-    // Eliminar un pago
-    public void eliminar(Long id) {
+    public void eliminarPago(Long id) {
         Pago pago = entityManager.find(Pago.class, id);
         if (pago != null) {
             entityManager.remove(pago);
         }
     }
 }
+

@@ -1,27 +1,32 @@
 package com.sistema_reservas.controller.dto;
 
+
 import java.time.LocalDateTime;
 
 public class ReservaDTO {
-
-    private Long idUsuario;
-    private Long idEspacio;
-    private LocalDateTime fechaInicio;
-    private LocalDateTime fechaFin;
+    private Long id_reserva;
+    private Long usuarioId;
+    private Long espacioId;
+    private LocalDateTime fecha;
     private String estado;
 
+<<<<<<< HEAD
     // Getters y setterss
     public Long getIdUsuario() { return idUsuario; }
     public void setIdUsuario(Long idUsuario) { this.idUsuario = idUsuario; }
+=======
+    public Long getId_reserva() { return id_reserva; }
+    public void setId_reserva(Long id_reserva) { this.id_reserva = id_reserva; }
+>>>>>>> 63e50ff4accfb5703f927565bd8dff0ba70df549
 
-    public Long getIdEspacio() { return idEspacio; }
-    public void setIdEspacio(Long idEspacio) { this.idEspacio = idEspacio; }
+    public Long getUsuarioId() { return usuarioId; }
+    public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
 
-    public LocalDateTime getFechaInicio() { return fechaInicio; }
-    public void setFechaInicio(LocalDateTime fechaInicio) { this.fechaInicio = fechaInicio; }
+    public Long getEspacioId() { return espacioId; }
+    public void setEspacioId(Long espacioId) { this.espacioId = espacioId; }
 
-    public LocalDateTime getFechaFin() { return fechaFin; }
-    public void setFechaFin(LocalDateTime fechaFin) { this.fechaFin = fechaFin; }
+    public LocalDateTime getFecha() { return fecha; }
+    public void setFecha(LocalDateTime fecha) { this.fecha = fecha; }
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }

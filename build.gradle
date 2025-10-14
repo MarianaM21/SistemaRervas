@@ -16,7 +16,7 @@ version = '0.0.1-SNAPSHOT'
 description = 'sistema de reservas para un coworking o empresa'
 
 java {
-    toolchain {
+     toolchain {
         languageVersion = JavaLanguageVersion.of(22)
     }
 }
@@ -33,6 +33,11 @@ jacocoTestReport {
         csv.required = false
         html.outputLocation = layout.buildDirectory.dir("reports/jacoco")
     }
+
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+
 }
 
 configurations {
@@ -60,6 +65,9 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.mockito:mockito-core:5.11.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    implementation 'com.itextpdf:itextpdf:5.5.13.3' //Descargar Factura a pdf
+
 }
 
 tasks.named('test') {
