@@ -1,7 +1,14 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.3.4'
-	id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+    id 'org.springframework.boot' version '3.3.4'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'
+}
+
+jacoco {
+    toolVersion = "0.8.13"
+        reportsDirectory = layout.buildDirectory.dir('customJacocoReportDir')
+
 }
 
 group = 'Apps.empresarial'
@@ -9,21 +16,34 @@ version = '0.0.1-SNAPSHOT'
 description = 'sistema de reservas para un coworking o empresa'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(22)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(22)
+    }
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir("reports/jacoco")
+    }
 }
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
     mavenCentral()
 }
-
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -35,11 +55,13 @@ dependencies {
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     annotationProcessor 'org.projectlombok:lombok'
+
+    // ✅ Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.mockito:mockito-core:5.11.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }

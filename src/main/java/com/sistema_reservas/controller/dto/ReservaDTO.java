@@ -10,7 +10,7 @@ public class ReservaDTO {
     private LocalDateTime fechaFin;
     private String estado;
 
-    // Getters y setters
+    // Getters y setterss
     public Long getIdUsuario() { return idUsuario; }
     public void setIdUsuario(Long idUsuario) { this.idUsuario = idUsuario; }
 
