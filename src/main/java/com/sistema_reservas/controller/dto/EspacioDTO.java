@@ -1,11 +1,24 @@
 package com.sistema_reservas.controller.dto;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 public class EspacioDTO {
     private Long id;
+    @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
+
+    @NotBlank(message = "El tipo es obligatorio")
     private String tipo;
-    private int capacidad;
+
+    @NotNull(message = "La capacidad es obligatoria")
+    @Min(value = 1, message = "La capacidad debe ser mayor a 0")
+    private Integer capacidad;
+
+    @NotBlank(message = "El estado es obligatorio")
     private String estado;
+
 
     public EspacioDTO() {}
 

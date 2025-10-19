@@ -37,22 +37,26 @@ public class EspacioServiceimpl implements EspacioService {
 //actalizar espacio
     @Override
     public EspacioResponseDTO actualizarEspacio(Long id, EspacioDTO dto) {
-        Espacio e = espacioDAO.buscarPorId(id);
-        if (e == null) throw new RuntimeException("Espacio no encontrado");
-        e.setNombre(dto.getNombre());
-        e.setTipo(dto.getTipo());
-        e.setCapacidad(dto.getCapacidad());
-        e.setEstado(dto.getEstado());
-        espacioDAO.actualizar(e);
-        return espacioMapper.toResponseDTO(e, "Espacio actualizado exitosamente");
-    }
-//eliminar espacio
+    Espacio e = espacioDAO.buscarPorId(id);
+    if (e == null) throw new RuntimeException("Espacio no encontrado"); // se maneja en controlador
+    e.setNombre(dto.getNombre());
+    e.setTipo(dto.getTipo());
+    e.setCapacidad(dto.getCapacidad());
+    e.setEstado(dto.getEstado());
+    espacioDAO.actualizar(e);
+    return espacioMapper.toResponseDTO(e, "Espacio actualizado exitosamente");
+}
+
+    //eliminar espacio
     @Override
     public void eliminarEspacio(Long id) {
+        Espacio e = espacioDAO.buscarPorId(id);
+        if (e == null) throw new RuntimeException("Espacio no encontrado para eliminar");
         espacioDAO.eliminar(id);
     }
 
-//buscar espacio por id
+
+    //buscar espacio por id
     @Override
     public EspacioResponseDTO buscarPorId(Long id) {
         Espacio e = espacioDAO.buscarPorId(id);

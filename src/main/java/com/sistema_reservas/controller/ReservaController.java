@@ -13,12 +13,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/reservas")
 public class ReservaController {
+    private static final Logger logger = LoggerFactory.getLogger(ReservaController.class);
 
     @Autowired
     private ReservaServiceimpl reservaServiceimpl;
@@ -49,9 +56,11 @@ public class ReservaController {
     public ResponseEntity<ReservaResponseDTO> obtenerReservaPorId(@PathVariable Long id) {
         Reserva reserva = reservaServiceimpl.obtenerReservaPorId(id);
         if (reserva == null) {
-            return ResponseEntity.notFound().build();
+            logger.warn("Reserva con ID {} no encontrada", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)//404
+                    .body(null);
         }
-        return ResponseEntity.ok(reservaMapper.toResponseDTO(reserva));
+        return ResponseEntity.ok(reservaMapper.toResponseDTO(reserva));//200
     }
 
     // Guardar una reserva
@@ -64,18 +73,16 @@ public class ReservaController {
 
             if (usuario == null || espacio == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new ReservaResponseDTO("Usuario o espacio no existen"));
+                        .body(new ReservaResponseDTO("Error: Comprueba el Id de espacio o usuario"));
             }
 
-            // se crea la reserva
             Reserva reserva = reservaMapper.toEntity(dto);
             reserva.setUsuario(usuario);
             reserva.setEspacio(espacio);
 
             Reserva nueva = reservaDAO.guardarReserva(reserva);
-
-            // Respuesta
             ReservaResponseDTO responseDTO = reservaMapper.toResponseDTO(nueva);
+            responseDTO.setMensaje("Reserva creada exitosamente");
             return ResponseEntity.ok(responseDTO);
 
         } catch (Exception e) {
@@ -84,13 +91,15 @@ public class ReservaController {
         }
     }
 
+
     // Actualizar reserva
     @PutMapping("actualizar/{id}")
     public ResponseEntity<ReservaResponseDTO> actualizarReserva(@PathVariable Long id, @RequestBody ReservaDTO dto) {
         try {
             Reserva reservaExistente = reservaServiceimpl.obtenerReservaPorId(id);
             if (reservaExistente == null) {
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ReservaResponseDTO("Reserva no encontrada"));
             }
 
 
@@ -99,15 +108,28 @@ public class ReservaController {
 
             if (dto.getUsuarioId() != null) {
                 Usuario usuario = usuarioDAO.buscarPorId(dto.getUsuarioId());
+                if (usuario == null) {
+                    return ResponseEntity.badRequest()
+                            .body(new ReservaResponseDTO("Usuario no encontrado"));
+                }
                 reservaExistente.setUsuario(usuario);
             }
             if (dto.getEspacioId() != null) {
                 Espacio espacio = espacioDAO.buscarPorId(dto.getEspacioId());
+                if (espacio == null) {
+                    return ResponseEntity.badRequest()
+                            .body(new ReservaResponseDTO("Espacio no encontrado"));
+                }
                 reservaExistente.setEspacio(espacio);
             }
 
+
             Reserva actualizada = reservaDAO.guardarReserva(reservaExistente);
-            return ResponseEntity.ok(reservaMapper.toResponseDTO(actualizada));
+
+            ReservaResponseDTO response = reservaMapper.toResponseDTO(actualizada);
+            response.setMensaje("Reserva actualizada exitosamente");
+            return ResponseEntity.ok(response);
+
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -116,17 +138,6 @@ public class ReservaController {
     }
 
     // Eliminar reserva
-    @DeleteMapping("eliminar/{id}")
-    public ResponseEntity<String> eliminarReserva(@PathVariable Long id) {
-        try {
-            reservaServiceimpl.eliminarReserva(id);
-            return ResponseEntity.ok("Reserva eliminada correctamente");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al eliminar la reserva: " + e.getMessage());
-        }
-    }
-    //Listar reservas por estado y fecha
     @GetMapping("/filtrar")
     public ResponseEntity<List<ReservaResponseDTO>> listarPorEstadoYFecha(
             @RequestParam(required = false) String estado,
@@ -141,6 +152,4 @@ public class ReservaController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
-
 }

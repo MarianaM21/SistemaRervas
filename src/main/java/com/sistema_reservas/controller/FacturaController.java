@@ -41,6 +41,12 @@ public class FacturaController {
             error.setMensaje("Pago no encontrado para generar factura");
             return ResponseEntity.badRequest().body(error);
         }
+        Factura existente = facturaService.obtenerPorPagoId(pagoId);
+        if (existente != null) {
+            FacturaResponseDTO error = new FacturaResponseDTO();
+            error.setMensaje("Ya existe una factura para este pago");
+            return ResponseEntity.badRequest().body(error);
+        }
 
         Factura factura = new Factura();
         factura.setPago(pago);
@@ -59,10 +65,16 @@ public class FacturaController {
     @GetMapping("/{id}")
     public ResponseEntity<FacturaResponseDTO> obtenerFactura(@PathVariable Long id) {
         Factura factura = facturaService.obtenerPorId(id);
-        if (factura == null) return ResponseEntity.notFound().build();
+        if (factura == null) {
+            FacturaResponseDTO error = new FacturaResponseDTO();
+            error.setMensaje("Factura no encontrada");
+            return ResponseEntity.status(404).body(error);
+        }
 
         FacturaResponseDTO dto = facturaMapper.toDTO(factura);
+        dto.setMensaje("Factura encontrada correctamente");
         return ResponseEntity.ok(dto);
+
     }
 
     // Listar facturas
@@ -75,10 +87,16 @@ public class FacturaController {
         return ResponseEntity.ok(response);
     }
 
+
     // Eliminar factura
     @DeleteMapping("/{id}")
     public ResponseEntity<String> eliminarFactura(@PathVariable Long id) {
+        Factura factura = facturaService.obtenerPorId(id);
+        if (factura == null) {
+            return ResponseEntity.status(404).body("Factura no encontrada");
+        }
         facturaService.eliminarFactura(id);
         return ResponseEntity.ok("Factura eliminada exitosamente");
     }
+
 }

@@ -31,4 +31,10 @@ public class FacturaServiceimpl implements FacturaService {
     public void eliminarFactura(Long id) {
         facturaDAO.eliminarFactura(id);
     }
+
+    public Factura obtenerPorPagoId(Long pagoId) {
+        return facturaDAO.obtenerPorPagoId(pagoId);
+    }
+
+
 }

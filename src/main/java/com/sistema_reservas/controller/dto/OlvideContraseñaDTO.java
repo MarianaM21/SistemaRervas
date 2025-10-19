@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 public class OlvideContraseñaDTO {
-    @Email
-    @NotBlank
+    @NotBlank(message = "El correo no puede estar vacío")
+    @Email(message = "El formato del correo es inválido")
     private String email;
 }

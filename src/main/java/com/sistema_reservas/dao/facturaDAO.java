@@ -4,6 +4,8 @@ import com.sistema_reservas.model.Factura;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 
@@ -37,5 +39,15 @@ public class facturaDAO {
             entityManager.remove(factura);
         }
     }
+    public Factura obtenerPorPagoId(Long pagoId) {
+        List<Factura> resultado = entityManager.createQuery(
+                        "SELECT f FROM Factura f WHERE f.pago.id = :pagoId", Factura.class)
+                .setParameter("pagoId", pagoId)
+                .getResultList();
+
+        return resultado.isEmpty() ? null : resultado.get(0);
+    }
+
+
 }
 

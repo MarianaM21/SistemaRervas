@@ -11,7 +11,8 @@ public class ReservaResponseDTO {
     private String nombreEspacio;
     private LocalDateTime fecha;
     private String estado;
-    private String mensajeError;
+    private String mensaje;
+
 
     public ReservaResponseDTO(Long id, Long idUsuario, String nombreUsuario,
                               Long idEspacio, String nombreEspacio, LocalDateTime fecha, String estado) {
@@ -24,9 +25,10 @@ public class ReservaResponseDTO {
         this.estado = estado;
     }
 
-    public ReservaResponseDTO(String mensajeError) {
-        this.mensajeError = mensajeError;
+    public ReservaResponseDTO(String mensaje) {
+        this.mensaje = mensaje;
     }
+
 
     // Getters
     public Long getId() { return id; }
@@ -36,5 +38,8 @@ public class ReservaResponseDTO {
     public String getNombreEspacio() { return nombreEspacio; }
     public LocalDateTime getFecha() { return fecha; }
     public String getEstado() { return estado; }
-    public String getMensajeError() { return mensajeError; }
+    public String getMensaje() { return mensaje; }
+    public void setMensaje(String mensaje) {this.mensaje = mensaje;}
+
+
 }

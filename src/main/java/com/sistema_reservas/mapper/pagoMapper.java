@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class pagoMapper {
 
-    // Mapear DTO a entidad
+    // el DTO se convierte al lenguaje entidad
     public Pago toEntity(PagoDTO dto) {
         Pago pago = new Pago();
         pago.setMonto(dto.getMonto());
@@ -26,7 +26,7 @@ public class pagoMapper {
         return pago;
     }
 
-    // entidad a DTO de respuesta
+    // de lenguaje entidad a DTO de respuesta
     public PagoResponseDTO toResponseDTO(Pago pago) {
         PagoResponseDTO dto = new PagoResponseDTO();
         dto.setId(pago.getId());

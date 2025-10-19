@@ -38,16 +38,19 @@ public class UsuarioServiceimpl implements UsuarioService {
         response.setId(user.getId());
         response.setNombre(user.getNombre());
         response.setEmail(user.getEmail());
+        response.setRol(user.getRol());
+
+
         return response;
     }
 
     @Override
     public LoginResponseDTO login(UserLoginDTO dto) {
         Usuario user = userRepository.findByEmail(dto.getEmail())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado")); // 404
 
         if (!user.getPassword().equals(dto.getPassword())) {
-            throw new RuntimeException("Contraseña incorrecta");
+            throw new IllegalArgumentException("Contraseña incorrecta"); // 401
         }
 
 
@@ -57,9 +60,7 @@ public class UsuarioServiceimpl implements UsuarioService {
         response.setEmail(user.getEmail());
         response.setToken("TOKEN_DE_EJEMPLO");// opcional: JWT real
         response.setRol(user.getRol());
-
-        // revisa si el rol llega correctamente a postam
-        System.out.println("ROL DEL USUARIO: " + user.getRol());
+        response.setMensaje("Inicio de sesión exitoso");
         return response;
     }
 
@@ -67,8 +68,7 @@ public class UsuarioServiceimpl implements UsuarioService {
     public void OlvideContraseña(OlvideContraseñaDTO request) {
         try {
             Usuario usuario = usuarioDAO.buscarPorCorreo(request.getEmail());
-            System.out.println("📩 Simulando envío de correo de recuperación a: " + usuario.getEmail());
-            // Aquí podrías implementar JavaMailSender más adelante.
+            System.out.println("Simulando envío de correo de recuperación a: " + usuario.getEmail());
         } catch (Exception e) {
             throw new RuntimeException("No se encontró ningún usuario con ese correo");
         }
@@ -80,17 +80,17 @@ public class UsuarioServiceimpl implements UsuarioService {
             throw new IllegalArgumentException("Las contraseñas no coinciden");
         }
 
+        Usuario usuario = usuarioDAO.buscarPorCorreo(request.getEmail());
+
+        if (usuario == null) {
+            throw new RuntimeException("No existe un usuario con ese correo");
+        }
+
         try {
-            Usuario usuario = usuarioDAO.buscarPorCorreo(request.getEmail());
-
-            if (usuario == null) {
-                throw new RuntimeException("No existe un usuario con ese correo");
-            }
-
             usuario.setPassword(request.getNewPassword());
             usuarioDAO.actualizar(usuario);
         } catch (Exception e) {
-            throw new RuntimeException("No se pudo restablecer la contraseña. Verifica el correo.");
+            throw new RuntimeException("Error interno al actualizar la contraseña");
         }
     }
     private UsuarioResponseDTO mapToResponseDTO(Usuario usuario) {
@@ -98,8 +98,8 @@ public class UsuarioServiceimpl implements UsuarioService {
                 usuario.getId(),
                 usuario.getNombre(),
                 usuario.getEmail(),
-                usuario.getRol(),        // campo rol
-                "Usuario actualizado correctamente"
+                usuario.getRol(),
+                "listado"
         );
     }
 
@@ -122,13 +122,18 @@ public class UsuarioServiceimpl implements UsuarioService {
     @Override
     public UsuarioResponseDTO actualizarUsuario(Long id, usuarioDTO dto) {
         Usuario usuario = usuarioDAO.buscarPorId(id);
+        if (usuario == null) {
+            return null;
+        }
+
+        //si el usuario existe se acualiza
         usuario.setNombre(dto.getNombre());
         usuario.setEmail(dto.getEmail());
         usuario.setRol(dto.getRol());
         Usuario actualizado = usuarioDAO.actualizar(usuario);
-        return usuarioMapper.toResponseDTO(actualizado, "Usuario actualizado correctamente");
-
+        return mapToResponseDTO(actualizado);
     }
+
 
     @Override
     public boolean eliminarUsuario(Long id) {

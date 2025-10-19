@@ -43,10 +43,9 @@ public class PagoController {
     // Crear pago
     @PostMapping
     public ResponseEntity<PagoResponseDTO> crearPago(@RequestBody PagoDTO dto) {
-        // Mapeamos DTO a entidad
         Pago pago = pagoMapper.toEntity(dto);
 
-        // Traemos la reserva completa con usuario y espacio
+        //reserva completa con usuario y espacio
         List<Reserva> reservas = entityManager.createQuery(
                         "SELECT r FROM Reserva r LEFT JOIN FETCH r.usuario LEFT JOIN FETCH r.espacio WHERE r.id_reserva = :id",
                         Reserva.class
@@ -61,11 +60,7 @@ public class PagoController {
 
         Reserva reservaCompleta = reservas.get(0);
         pago.setReserva(reservaCompleta);
-
-
         Pago pagoGuardado = pagoService.guardarPago(pago);
-
-        // mappeo del dto de respuesta
         PagoResponseDTO response = pagoMapper.toResponseDTO(pagoGuardado);
         response.setMensaje("Pago creado correctamente");
 
@@ -86,31 +81,31 @@ public class PagoController {
     @GetMapping("/{id}")
     public ResponseEntity<PagoResponseDTO> obtenerPago(@PathVariable Long id) {
         Pago pago = pagoService.obtenerPagoPorId(id);
-        if (pago == null) return ResponseEntity.notFound().build();
-
+        if (pago == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new PagoResponseDTO("Pago no encontrado"));
+        }
         PagoResponseDTO dto = pagoMapper.toResponseDTO(pago);
         return ResponseEntity.ok(dto);
     }
+
     //actualizar pago
     @PutMapping("/{id}")
     public ResponseEntity<PagoResponseDTO> actualizarPago(@PathVariable Long id, @RequestBody PagoDTO pagoDTO) {
         try {
-            //pago existente
             Pago pagoExistente = pagoService.obtenerPagoPorId(id);
             if (pagoExistente == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new PagoResponseDTO("Pago no encontrado"));
+                        .body(new PagoResponseDTO("Pago no encontrado para actualizar"));//404
             }
 
-            //campos que se van a actualizar
+            //se actualizan los campos
             pagoExistente.setMonto(pagoDTO.getMonto());
             pagoExistente.setEstado(pagoDTO.getEstado());
             pagoExistente.setFechaPago(pagoDTO.getFechaPago());
             pagoExistente.setMetodo(pagoDTO.getMetodo());
-
-            //Actualizamos la reserva
+            //reserva actualizada
             if (pagoDTO.getReservaId() != null) {
-                // Traemos la reserva completa con usuario y espacio
                 List<Reserva> reservas = entityManager.createQuery(
                                 "SELECT r FROM Reserva r LEFT JOIN FETCH r.usuario LEFT JOIN FETCH r.espacio WHERE r.id_reserva = :id",
                                 Reserva.class
@@ -122,15 +117,11 @@ public class PagoController {
                     return ResponseEntity.badRequest()
                             .body(new PagoResponseDTO("Reserva no encontrada para actualizar el pago"));
                 }
-
                 Reserva reservaCompleta = reservas.get(0);
                 pagoExistente.setReserva(reservaCompleta);
             }
 
-
             Pago pagoActualizado = pagoService.guardarPago(pagoExistente);
-
-            //DTO de respuesta
             PagoResponseDTO responseDTO = pagoMapper.toResponseDTO(pagoActualizado);
             responseDTO.setMensaje("Pago actualizado correctamente");
 
@@ -146,16 +137,21 @@ public class PagoController {
     // Eliminar pago
     @DeleteMapping("/{id}")
     public ResponseEntity<String> eliminarPago(@PathVariable Long id) {
+        Pago pago = pagoService.obtenerPagoPorId(id);
+        if (pago == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Pago no encontrado para eliminar");
+        }
         pagoService.eliminarPago(id);
-        return ResponseEntity.ok("Eliminado exitosamente");
+        return ResponseEntity.ok("Pago eliminado exitosamente");
     }
 
-    //Recibir un evento de pago ya sea confirmacion o pendiente
 
+    //Recibir un evento de pago
     @PostMapping("/webhook")
     public ResponseEntity<String> recibirEventoPago(@RequestBody Pago pagoRecibido) {
         try {
-            // Simulación: guardar o actualizar el pago en la BD
+            // Simulación de guardar o actualizar el pago en la BD
             Pago pagoExistente = pagoService.obtenerPagoPorId(pagoRecibido.getId());
 
             if (pagoExistente != null) {
@@ -190,19 +186,17 @@ public class PagoController {
              if (factura == null) {
                  return ResponseEntity.notFound().build();
              }
-
-             //ObjectMapper para LocalDateTime
+             //ObjectMapper LocalDateTime
              ObjectMapper objectMapper = new ObjectMapper();
              objectMapper.registerModule(new JavaTimeModule());
              objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
 
-             //formato legible json
+             //formato json
              String jsonFactura = objectMapper
                      .writerWithDefaultPrettyPrinter()
                      .writeValueAsString(factura);
-
-             // Configurar  descarga
+             // descargar
              HttpHeaders headers = new HttpHeaders();
              headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=factura_" + id + ".json");
              headers.add(HttpHeaders.CONTENT_TYPE, "application/json");

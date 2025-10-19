@@ -25,15 +25,20 @@ public class pagoDAO {
     }
 
     public Pago obtenerPagoPorId(Long id) {
-        return entityManager.createQuery(
-                        "SELECT p FROM Pago p " +
-                                "JOIN FETCH p.reserva r " +
-                                "JOIN FETCH r.usuario u " +
-                                "JOIN FETCH r.espacio e " +
-                                "WHERE p.id = :id", Pago.class)
-                .setParameter("id", id)
-                .getSingleResult();
+        try {
+            return entityManager.createQuery(
+                            "SELECT p FROM Pago p " +
+                                    "JOIN FETCH p.reserva r " +
+                                    "JOIN FETCH r.usuario u " +
+                                    "JOIN FETCH r.espacio e " +
+                                    "WHERE p.id = :id", Pago.class)
+                    .setParameter("id", id)
+                    .getSingleResult();
+        } catch (jakarta.persistence.NoResultException e) {
+            return null;
+        }
     }
+
 
     public List<Pago> listarPagos() {
         return entityManager.createQuery(
