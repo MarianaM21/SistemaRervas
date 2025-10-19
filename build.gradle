@@ -3,6 +3,7 @@ plugins {
     id 'org.springframework.boot' version '3.3.4'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'jacoco'
+    id "org.sonarqube" version "5.1.0.4882"
 }
 
 jacoco {
@@ -30,9 +31,12 @@ jacocoTestReport {
     reports {
         xml.required = true
         csv.required = false
+        html.required = true
         html.outputLocation = layout.buildDirectory.dir("reports/jacoco")
     }
 }
+
+
 
 configurations {
     compileOnly {
@@ -45,6 +49,7 @@ repositories {
 }
 
 dependencies {
+    // 🔹 Dependencias principales
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'mysql:mysql-connector-java:8.0.33'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -55,14 +60,28 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     annotationProcessor 'org.projectlombok:lombok'
 
+    // 🔹 Librería PDF
+    implementation 'com.itextpdf:itextpdf:5.5.13.3'
+
     // ✅ Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.mockito:mockito-core:5.11.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    implementation 'com.itextpdf:itextpdf:5.5.13.3' // Descargar factura a PDF
+    // ✅ Base de datos en memoria (solo para tests)
+    testImplementation 'com.h2database:h2'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "sistema_reservas"
+        property "sonar.host.url", "http://localhost:9000"
+        property "sonar.login", "sqp_7d38c6097fdf571b4ff7a513d8af20412df94c0f"
+        property "sonar.java.coveragePlugin", "jacoco"
+        property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
+    }
 }
