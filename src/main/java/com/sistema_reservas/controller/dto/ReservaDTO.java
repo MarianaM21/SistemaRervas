@@ -12,8 +12,8 @@ public class ReservaDTO {
 
 
     // Getters y setterss
-    public Long getIdUsuario() { return idUsuario; }
-    public void setIdUsuario(Long idUsuario) { this.idUsuario = idUsuario; }
+    public Long getIdUsuario() { return usuarioId; }
+    public void setIdUsuario(Long idUsuario) { this.usuarioId = idUsuario; }
 
     public Long getId_reserva() { return id_reserva; }
     public void setId_reserva(Long id_reserva) { this.id_reserva = id_reserva; }
