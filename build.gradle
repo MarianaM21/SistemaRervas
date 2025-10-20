@@ -17,7 +17,7 @@ description = 'sistema de reservas para un coworking o empresa'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(22)
     }
 }
 
@@ -80,7 +80,7 @@ sonarqube {
     properties {
         property "sonar.projectKey", "sistema_reservas"
         property "sonar.host.url", "http://localhost:9000"
-        property "sonar.login", "sqp_7d38c6097fdf571b4ff7a513d8af20412df94c0f"
+        property "sonar.login", "sqp_6e8ad376d29fe5d4d35d8acd170b8942edb14685"
         property "sonar.java.coveragePlugin", "jacoco"
         property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
     }

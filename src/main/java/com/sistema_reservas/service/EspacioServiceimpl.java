@@ -29,11 +29,12 @@ public class EspacioServiceimpl implements EspacioService {
     }
 //listar todos los espacios
     @Override
-    public List<EspacioResponseDTO> listarEspacios() {
-        return espacioDAO.listarTodos().stream()
-                .map(e -> espacioMapper.toResponseDTO(e, ""))
-                .collect(Collectors.toList());
-    }
+public List<EspacioResponseDTO> listarEspacios() {
+    return espacioDAO.listarTodos().stream()
+            .map(e -> espacioMapper.toResponseDTO(e, ""))
+            .toList();  // ✅ más moderno y recomendado
+}
+
 //actalizar espacio
     @Override
     public EspacioResponseDTO actualizarEspacio(Long id, EspacioDTO dto) {

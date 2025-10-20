@@ -9,16 +9,14 @@ public class ReservaDTO {
     private LocalDateTime fecha;
     private String estado;
 
-<<<<<<< HEAD
 
     // Getters y setterss
     public Long getIdUsuario() { return usuarioId; }
     public void setIdUsuario(Long idUsuario) { this.usuarioId = idUsuario; }
-=======
+
     // Getters y setters
     public Long getUsuarioId() { return usuarioId; }
     public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
->>>>>>> 44acc82 (Subidos los test de services y sonarqube)
 
     public Long getId_reserva() { return id_reserva; }
     public void setId_reserva(Long id_reserva) { this.id_reserva = id_reserva; }

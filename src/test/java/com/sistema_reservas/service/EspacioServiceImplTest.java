@@ -3,6 +3,7 @@ package com.sistema_reservas.service;
 import com.sistema_reservas.controller.dto.EspacioDTO;
 import com.sistema_reservas.controller.dto.EspacioResponseDTO;
 import com.sistema_reservas.dao.espacioDAO;
+import com.sistema_reservas.mapper.espacioMapper;
 import com.sistema_reservas.model.Espacio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,72 +32,67 @@ class EspacioServiceImplTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        espacio = new Espacio("Sala Principal", "Auditorio", 100, "Disponible");
+        espacio = new Espacio("Sala A", "Reunión", 10, "Disponible");
         espacio.setIdEspacio(1L);
 
         dto = new EspacioDTO();
         dto.setId(1L);
-        dto.setNombre("Sala Principal");
-        dto.setTipo("Auditorio");
-        dto.setCapacidad(100);
+        dto.setNombre("Sala A");
+        dto.setTipo("Reunión");
+        dto.setCapacidad(10);
         dto.setEstado("Disponible");
     }
 
     @Test
-    void testGuardarEspacio() {
+    void guardarEspacio_deberiaGuardarYRetornarDTO() {
         when(espacioDAO.guardar(any(Espacio.class))).thenReturn(espacio);
 
-        EspacioResponseDTO response = espacioService.guardarEspacio(dto);
+        EspacioResponseDTO result = espacioService.guardarEspacio(dto);
 
-        assertNotNull(response);
-        assertEquals("Sala Principal", response.getNombre());
-        assertEquals("Espacio guardado exitosamente", response.getMensaje());
+        assertNotNull(result);
+        assertEquals("Sala A", result.getNombre());
+        assertEquals("Espacio guardado exitosamente", result.getMensaje());
         verify(espacioDAO, times(1)).guardar(any(Espacio.class));
     }
 
     @Test
-    void testListarEspacios() {
+    void listarEspacios_deberiaRetornarListaDeEspacios() {
         when(espacioDAO.listarTodos()).thenReturn(Arrays.asList(espacio));
 
-        List<EspacioResponseDTO> lista = espacioService.listarEspacios();
+        List<EspacioResponseDTO> result = espacioService.listarEspacios();
 
-        assertNotNull(lista);
-        assertEquals(1, lista.size());
-        assertEquals("Sala Principal", lista.get(0).getNombre());
+        assertEquals(1, result.size());
+        assertEquals("Sala A", result.get(0).getNombre());
         verify(espacioDAO, times(1)).listarTodos();
     }
 
     @Test
-    void testActualizarEspacio() {
+    void actualizarEspacio_deberiaActualizarCuandoExiste() {
         when(espacioDAO.buscarPorId(1L)).thenReturn(espacio);
         when(espacioDAO.actualizar(any(Espacio.class))).thenReturn(espacio);
 
-        dto.setNombre("Sala Modificada");
-        EspacioResponseDTO response = espacioService.actualizarEspacio(1L, dto);
+        dto.setNombre("Sala B");
+        EspacioResponseDTO result = espacioService.actualizarEspacio(1L, dto);
 
-        assertNotNull(response);
-        assertEquals("Sala Modificada", response.getNombre());
-        assertEquals("Espacio actualizado exitosamente", response.getMensaje());
-        verify(espacioDAO, times(1)).buscarPorId(1L);
-        verify(espacioDAO, times(1)).actualizar(any(Espacio.class));
+        assertEquals("Sala B", result.getNombre());
+        assertEquals("Espacio actualizado exitosamente", result.getMensaje());
+        verify(espacioDAO).actualizar(any(Espacio.class));
     }
 
     @Test
-    void testActualizarEspacioNoEncontrado() {
+    void actualizarEspacio_deberiaLanzarExcepcionSiNoExiste() {
         when(espacioDAO.buscarPorId(1L)).thenReturn(null);
 
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
-                espacioService.actualizarEspacio(1L, dto)
-        );
+                espacioService.actualizarEspacio(1L, dto));
 
         assertEquals("Espacio no encontrado", exception.getMessage());
-        verify(espacioDAO, times(1)).buscarPorId(1L);
         verify(espacioDAO, never()).actualizar(any(Espacio.class));
     }
 
     @Test
-    void testEliminarEspacio() {
-        doNothing().when(espacioDAO).eliminar(1L);
+    void eliminarEspacio_deberiaEliminarCuandoExiste() {
+        when(espacioDAO.buscarPorId(1L)).thenReturn(espacio);
 
         espacioService.eliminarEspacio(1L);
 
@@ -104,25 +100,34 @@ class EspacioServiceImplTest {
     }
 
     @Test
-    void testBuscarPorId() {
-        when(espacioDAO.buscarPorId(1L)).thenReturn(espacio);
-
-        EspacioResponseDTO response = espacioService.buscarPorId(1L);
-
-        assertNotNull(response);
-        assertEquals("Sala Principal", response.getNombre());
-        verify(espacioDAO, times(1)).buscarPorId(1L);
-    }
-
-    @Test
-    void testBuscarPorIdNoEncontrado() {
+    void eliminarEspacio_deberiaLanzarExcepcionSiNoExiste() {
         when(espacioDAO.buscarPorId(1L)).thenReturn(null);
 
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
-                espacioService.buscarPorId(1L)
-        );
+                espacioService.eliminarEspacio(1L));
+
+        assertEquals("Espacio no encontrado para eliminar", exception.getMessage());
+        verify(espacioDAO, never()).eliminar(anyLong());
+    }
+
+    @Test
+    void buscarPorId_deberiaRetornarEspacioSiExiste() {
+        when(espacioDAO.buscarPorId(1L)).thenReturn(espacio);
+
+        EspacioResponseDTO result = espacioService.buscarPorId(1L);
+
+        assertNotNull(result);
+        assertEquals("Sala A", result.getNombre());
+        verify(espacioDAO).buscarPorId(1L);
+    }
+
+    @Test
+    void buscarPorId_deberiaLanzarExcepcionSiNoExiste() {
+        when(espacioDAO.buscarPorId(1L)).thenReturn(null);
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                espacioService.buscarPorId(1L));
 
         assertEquals("Espacio no encontrado", exception.getMessage());
-        verify(espacioDAO, times(1)).buscarPorId(1L);
     }
 }
