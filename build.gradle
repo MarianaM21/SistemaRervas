@@ -30,6 +30,7 @@ jacocoTestReport {
     dependsOn test
     reports {
         xml.required = true
+        xml.outputLocation = layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml")
         csv.required = false
         html.required = true
         html.outputLocation = layout.buildDirectory.dir("reports/jacoco")
@@ -66,6 +67,7 @@ dependencies {
     // ✅ Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.mockito:mockito-core:5.11.0'
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // ✅ Base de datos en memoria (solo para tests)
