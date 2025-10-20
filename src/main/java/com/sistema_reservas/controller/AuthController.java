@@ -54,7 +54,7 @@ public class AuthController {
     public ResponseEntity<?> forgotPassword(@Valid @RequestBody OlvideContraseñaDTO request) {
         try {
             usuarioService.OlvideContraseña(request);
-            return ResponseEntity.ok("Correo de recuperación enviado correctamente (simulado)");
+            return ResponseEntity.ok("Correo de recuperación enviado correctamente ");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage()); // 400datos inválidos
         } catch (RuntimeException e) {
