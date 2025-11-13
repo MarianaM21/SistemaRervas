@@ -1,11 +1,13 @@
 package com.sistema_reservas.controller;
 
 import com.sistema_reservas.controller.dto.*;
+import com.sistema_reservas.security.JwtUtil;
 import com.sistema_reservas.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +20,8 @@ import java.util.Map;
 public class AuthController {
 
     private final UsuarioService usuarioService;
+    private final AuthenticationManager authManager;
+    private final JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody UserRegisterDTO dto) {
@@ -32,9 +36,11 @@ public class AuthController {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationError(MethodArgumentNotValidException ex) {
-        Map<String, String> response = new HashMap<>();
-        response.put("error", "tienes datos invalidos");
-        return ResponseEntity.badRequest().body(response);
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error -> {
+            errors.put(error.getField(), error.getDefaultMessage());
+        });
+        return ResponseEntity.badRequest().body(errors);
     }
 
 
@@ -42,11 +48,11 @@ public class AuthController {
     public ResponseEntity<?> login(@Valid @RequestBody UserLoginDTO dto) {
         try {
             LoginResponseDTO response = usuarioService.login(dto);
-            return ResponseEntity.ok(response); // 200 OK
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());// Credenciales inválidas
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); // 404Usuario no encontrado
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
@@ -56,12 +62,11 @@ public class AuthController {
             usuarioService.OlvideContraseña(request);
             return ResponseEntity.ok("Correo de recuperación enviado correctamente ");
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage()); // 400datos inválidos
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());  // 404usuario no encontrado
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
-
 
     @PostMapping("/restaurar-contraseña")
     public ResponseEntity<?> resetPassword(@RequestBody RestaurarContraseñaDTO request) {
@@ -69,10 +74,9 @@ public class AuthController {
             usuarioService.RestaurarContraseña(request);
             return ResponseEntity.ok("Contraseña restablecida correctamente");
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); // 404 si usuario no existe
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error al restablecer la contraseña"); // 500
+            return ResponseEntity.internalServerError().body("Error al restablecer la contraseña");
         }
     }
-
 }

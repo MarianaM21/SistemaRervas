@@ -5,8 +5,20 @@ import com.sistema_reservas.dao.usuarioDAO;
 import com.sistema_reservas.mapper.usuarioMapper;
 import com.sistema_reservas.model.Usuario;
 import com.sistema_reservas.repository.UserRepository;
+import com.sistema_reservas.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+
+//autenticacion
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.server.ResponseStatusException;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,19 +29,24 @@ public class UsuarioServiceimpl implements UsuarioService {
 
     private final UserRepository userRepository;
     private final usuarioDAO usuarioDAO;
+    private final JwtUtil jwtUtil;
+    private final AuthenticationManager authManager;
+    private final PasswordEncoder passwordEncoder;
+
 
 
     @Override
     public UserResponseRegisterDTO registerUser(UserRegisterDTO dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new RuntimeException("El usuario ya existe");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El usuario ya existe");
         }
 
         Usuario user = new Usuario();
         user.setNombre(dto.getNombre());
         user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
-        user.setRol(dto.getRol() != null ? dto.getRol() : "user");
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setRol(dto.getRol() != null ? dto.getRol().toUpperCase() : "USER");
+
 
 
         userRepository.save(user);
@@ -46,23 +63,34 @@ public class UsuarioServiceimpl implements UsuarioService {
 
     @Override
     public LoginResponseDTO login(UserLoginDTO dto) {
-        Usuario user = userRepository.findByEmail(dto.getEmail())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado")); // 404
+        try {
+            Authentication auth = authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword())
+            );
 
-        if (!user.getPassword().equals(dto.getPassword())) {
-            throw new IllegalArgumentException("Contraseña incorrecta"); // 401
+            SecurityContextHolder.getContext().setAuthentication(auth);
+
+            Usuario user = userRepository.findByEmail(dto.getEmail())
+                    .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+            String token = jwtUtil.generateToken(user.getEmail());
+
+            LoginResponseDTO response = new LoginResponseDTO();
+            response.setId(user.getId());
+            response.setNombre(user.getNombre());
+            response.setEmail(user.getEmail());
+            response.setRol(user.getRol());
+            response.setToken(token);
+            response.setMensaje("Inicio de sesión exitoso");
+
+            return response;
+        } catch (Exception e) {
+            System.out.println("Error al autenticar: " + e.getMessage());
+            e.printStackTrace(); // Esto mostrará la causa exacta
+            throw new IllegalArgumentException("Credenciales inválidas");
         }
-
-
-        LoginResponseDTO response = new LoginResponseDTO();
-        response.setId(user.getId());
-        response.setNombre(user.getNombre());
-        response.setEmail(user.getEmail());
-        response.setToken("TOKEN_DE_EJEMPLO");// opcional: JWT real
-        response.setRol(user.getRol());
-        response.setMensaje("Inicio de sesión exitoso");
-        return response;
     }
+
 
     @Override
     public void OlvideContraseña(OlvideContraseñaDTO request) {
