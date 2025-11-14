@@ -63,32 +63,29 @@ public class UsuarioServiceimpl implements UsuarioService {
 
     @Override
     public LoginResponseDTO login(UserLoginDTO dto) {
-        try {
-            Authentication auth = authManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword())
-            );
-
-            SecurityContextHolder.getContext().setAuthentication(auth);
-
-            Usuario user = userRepository.findByEmail(dto.getEmail())
-                    .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
-
-            String token = jwtUtil.generateToken(user.getEmail());
-
-            LoginResponseDTO response = new LoginResponseDTO();
-            response.setId(user.getId());
-            response.setNombre(user.getNombre());
-            response.setEmail(user.getEmail());
-            response.setRol(user.getRol());
-            response.setToken(token);
-            response.setMensaje("Inicio de sesión exitoso");
-
-            return response;
-        } catch (Exception e) {
-            System.out.println("Error al autenticar: " + e.getMessage());
-            e.printStackTrace(); // Esto mostrará la causa exacta
-            throw new IllegalArgumentException("Credenciales inválidas");
+        Usuario user = userRepository.findByEmail(dto.getEmail())
+                .orElseThrow(() -> new RuntimeException("EMAIL_NOT_FOUND"));
+        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+            throw new RuntimeException("INVALID_PASSWORD");
         }
+
+        Authentication auth = authManager.authenticate(
+                new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword())
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        // Genera el token
+        String token = jwtUtil.generateToken(user.getEmail());
+
+        LoginResponseDTO response = new LoginResponseDTO();
+        response.setId(user.getId());
+        response.setNombre(user.getNombre());
+        response.setEmail(user.getEmail());
+        response.setRol(user.getRol());
+        response.setToken(token);
+        response.setMensaje("Inicio de sesión exitoso");
+
+        return response;
     }
 
 
