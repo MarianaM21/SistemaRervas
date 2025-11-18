@@ -26,9 +26,17 @@ public class ReservaServiceimpl {
         return reservaDAO.guardarReserva(reserva);
     }
 
-    public void eliminarReserva(Long id) {
-        reservaDAO.eliminarReserva(id);
+    public boolean eliminarReserva(Long id) {
+        Reserva reserva = reservaDAO.obtenerPorId(id);
+        if (reserva != null) {
+            reservaDAO.eliminarReserva(id);
+            return true;
+        }
+        return false;
     }
+
+
+
     public List<Reserva> listarReservasPorEstadoYFecha(String estado, String fechaStr) {
         LocalDateTime fecha = fechaStr != null ? LocalDateTime.parse(fechaStr) : null;
         return reservaDAO.listarPorEstadoYFecha(estado, fecha);

@@ -3,6 +3,8 @@ package com.sistema_reservas.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 @Entity
 @Table(name = "usuario")
@@ -20,6 +22,12 @@ public class Usuario {
 
     @Column(name = "rol")
     private String rol;
+
+    @Column(name = "reset_token")
+    private String resetToken;
+
+    @Column(name = "reset_token_expiration")
+    private LocalDateTime resetTokenExpiration;
 
     public String getNombre() {return nombre;}
     public void setNombre(String nombre) {this.nombre = nombre;}

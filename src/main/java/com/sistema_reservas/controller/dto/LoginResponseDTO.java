@@ -8,10 +8,9 @@ public class LoginResponseDTO {
     private String nombre;
     private String email;
     private String token;
+    private String refreshToken;
     private String rol;
     private String mensaje;
-
-
 }
 
 

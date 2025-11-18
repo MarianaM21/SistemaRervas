@@ -22,9 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         Usuario usuario = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + email));
 
-        // Normalizar rol (mayúsculas, sin tildes ni variaciones)
         String rol = usuario.getRol().toUpperCase().trim();
-
         if (!rol.equals("ADMIN") && !rol.equals("USER") && !rol.equals("AFILIADO")) {
             throw new UsernameNotFoundException("Rol no válido para el usuario: " + rol);
         }

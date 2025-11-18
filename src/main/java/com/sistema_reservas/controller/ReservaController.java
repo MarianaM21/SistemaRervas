@@ -2,48 +2,49 @@ package com.sistema_reservas.controller;
 
 import com.sistema_reservas.controller.dto.ReservaDTO;
 import com.sistema_reservas.controller.dto.ReservaResponseDTO;
-import com.sistema_reservas.dao.reservaDAO;
-import com.sistema_reservas.dao.usuarioDAO;
+import com.sistema_reservas.dao.UsuarioDAO;
 import com.sistema_reservas.dao.espacioDAO;
 import com.sistema_reservas.model.Reserva;
 import com.sistema_reservas.model.Usuario;
 import com.sistema_reservas.model.Espacio;
 import com.sistema_reservas.service.ReservaServiceimpl;
+import com.sistema_reservas.mapper.reservaMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/reservas")
 public class ReservaController {
+
     private static final Logger logger = LoggerFactory.getLogger(ReservaController.class);
 
     @Autowired
     private ReservaServiceimpl reservaServiceimpl;
 
     @Autowired
-    private reservaDAO reservaDAO;
-
-    @Autowired
-    private usuarioDAO usuarioDAO;
+    private UsuarioDAO usuarioDAO;
 
     @Autowired
     private espacioDAO espacioDAO;
 
     @Autowired
-    private com.sistema_reservas.mapper.reservaMapper reservaMapper;
+    private reservaMapper reservaMapper;
 
-    // Listar reservas
+    @Autowired
+    private com.sistema_reservas.security.ReservaSecurity reservaSecurity;
+
+    // Listar todas las reservas
     @GetMapping("/listar")
+    @PreAuthorize("hasRole('ADMIN')")
     public List<ReservaResponseDTO> listarReservas() {
         List<Reserva> reservas = reservaServiceimpl.listarReservas();
         return reservas.stream()
@@ -51,23 +52,23 @@ public class ReservaController {
                 .toList();
     }
 
-    // listar una reserva por Id
+    // Obtener una reserva por ID
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @reservaSecurity.esPropietario(#id, authentication.name)")
     public ResponseEntity<ReservaResponseDTO> obtenerReservaPorId(@PathVariable Long id) {
         Reserva reserva = reservaServiceimpl.obtenerReservaPorId(id);
         if (reserva == null) {
             logger.warn("Reserva con ID {} no encontrada", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)//404
-                    .body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-        return ResponseEntity.ok(reservaMapper.toResponseDTO(reserva));//200
+        return ResponseEntity.ok(reservaMapper.toResponseDTO(reserva));
     }
 
-    // Guardar una reserva
+    // Crear reserva →
     @PostMapping
-    public ResponseEntity<ReservaResponseDTO> guardarReserva(@RequestBody ReservaDTO dto) {
+    @PreAuthorize("hasAnyRole('USER','AFILIADO','ADMIN')")
+    public ResponseEntity<ReservaResponseDTO> guardarReserva(@RequestBody ReservaDTO dto, Authentication auth) {
         try {
-            // Buscar usuario y espacio existentes
             Usuario usuario = usuarioDAO.buscarPorId(dto.getUsuarioId());
             Espacio espacio = espacioDAO.buscarPorId(dto.getEspacioId());
 
@@ -76,11 +77,19 @@ public class ReservaController {
                         .body(new ReservaResponseDTO("Error: Comprueba el Id de espacio o usuario"));
             }
 
+            // Validación: un usuario normal no puede crear reservas para otro usuario
+            if (!auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+                if (!usuario.getEmail().equals(auth.getName())) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(new ReservaResponseDTO("No puedes crear reserva para otro usuario"));
+                }
+            }
+
             Reserva reserva = reservaMapper.toEntity(dto);
             reserva.setUsuario(usuario);
             reserva.setEspacio(espacio);
 
-            Reserva nueva = reservaDAO.guardarReserva(reserva);
+            Reserva nueva = reservaServiceimpl.guardarReserva(reserva);
             ReservaResponseDTO responseDTO = reservaMapper.toResponseDTO(nueva);
             responseDTO.setMensaje("Reserva creada exitosamente");
             return ResponseEntity.ok(responseDTO);
@@ -91,17 +100,18 @@ public class ReservaController {
         }
     }
 
-
     // Actualizar reserva
-    @PutMapping("actualizar/{id}")
-    public ResponseEntity<ReservaResponseDTO> actualizarReserva(@PathVariable Long id, @RequestBody ReservaDTO dto) {
+    @PutMapping("/actualizar/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @reservaSecurity.esPropietario(#id, authentication.name)")
+    public ResponseEntity<ReservaResponseDTO> actualizarReserva(@PathVariable Long id,
+                                                                @RequestBody ReservaDTO dto,
+                                                                Authentication auth) {
         try {
             Reserva reservaExistente = reservaServiceimpl.obtenerReservaPorId(id);
             if (reservaExistente == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(new ReservaResponseDTO("Reserva no encontrada"));
             }
-
 
             reservaExistente.setFecha(dto.getFecha());
             reservaExistente.setEstado(dto.getEstado());
@@ -114,6 +124,7 @@ public class ReservaController {
                 }
                 reservaExistente.setUsuario(usuario);
             }
+
             if (dto.getEspacioId() != null) {
                 Espacio espacio = espacioDAO.buscarPorId(dto.getEspacioId());
                 if (espacio == null) {
@@ -123,13 +134,10 @@ public class ReservaController {
                 reservaExistente.setEspacio(espacio);
             }
 
-
-            Reserva actualizada = reservaDAO.guardarReserva(reservaExistente);
-
+            Reserva actualizada = reservaServiceimpl.guardarReserva(reservaExistente);
             ReservaResponseDTO response = reservaMapper.toResponseDTO(actualizada);
             response.setMensaje("Reserva actualizada exitosamente");
             return ResponseEntity.ok(response);
-
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -137,8 +145,9 @@ public class ReservaController {
         }
     }
 
-    // Eliminar reserva
+    // Filtrar reservas → solo ADMIN
     @GetMapping("/filtrar")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ReservaResponseDTO>> listarPorEstadoYFecha(
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) String fecha) {
@@ -152,4 +161,15 @@ public class ReservaController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    @DeleteMapping("/eliminar/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @reservaSecurity.esPropietario(#id, authentication.name)")
+    public ResponseEntity<?> eliminarReserva(@PathVariable Long id) {
+        boolean eliminado = reservaServiceimpl.eliminarReserva(id);
+        if (eliminado)
+            return ResponseEntity.ok(Map.of("mensaje", "Reserva eliminada"));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "Reserva no encontrada"));
+    }
+
+
 }

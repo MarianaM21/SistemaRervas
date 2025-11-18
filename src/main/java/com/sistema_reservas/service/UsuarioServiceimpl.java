@@ -1,26 +1,32 @@
 package com.sistema_reservas.service;
 
 import com.sistema_reservas.controller.dto.*;
-import com.sistema_reservas.dao.usuarioDAO;
-import com.sistema_reservas.mapper.usuarioMapper;
+import com.sistema_reservas.dao.UsuarioDAO;
+import com.sistema_reservas.model.RefreshToken;
 import com.sistema_reservas.model.Usuario;
 import com.sistema_reservas.repository.UserRepository;
 import com.sistema_reservas.security.JwtUtil;
+
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
-
-//autenticacion
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,27 +34,65 @@ import java.util.stream.Collectors;
 public class UsuarioServiceimpl implements UsuarioService {
 
     private final UserRepository userRepository;
-    private final usuarioDAO usuarioDAO;
+    private final UsuarioDAO usuarioDAO;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authManager;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
+    private final JavaMailSender mailSender;
 
-
+    // Lista de dominios permitidos para AFILIADO
+    private final List<String> afiliadoDomains = List.of("@empresa.com", "@universidad.edu");
 
     @Override
     public UserResponseRegisterDTO registerUser(UserRegisterDTO dto) {
+        if (dto.getRol() != null && dto.getRol().equalsIgnoreCase("ADMIN")) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "No está permitido crear administradores desde el registro público.");
+        }
+
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El usuario ya existe");
         }
 
+        String email = dto.getEmail().toLowerCase();
+        String rol = "USER"; // Rol por defecto
+
+        // Dominios permitidos para AFILIADO
+        List<String> afiliadoDomains = List.of("@empresa.com", "@universidad.edu");
+        if (afiliadoDomains.stream().anyMatch(email::endsWith)) {
+            rol = "AFILIADO";
+        }
         Usuario user = new Usuario();
         user.setNombre(dto.getNombre());
-        user.setEmail(dto.getEmail());
+        user.setEmail(email);
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setRol(dto.getRol() != null ? dto.getRol().toUpperCase() : "USER");
+        user.setRol(rol);
 
+        userRepository.save(user);
+        UserResponseRegisterDTO response = new UserResponseRegisterDTO();
+        response.setId(user.getId());
+        response.setNombre(user.getNombre());
+        response.setEmail(user.getEmail());
+        response.setRol(user.getRol());
 
+        return response;
+    }
 
+    public UserResponseRegisterDTO upgradeToAfiliado(String email) {
+        Usuario user = userRepository.findByEmail(email.toLowerCase())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+
+        if (!user.getRol().equals("USER")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Solo usuarios normales pueden convertirse en AFILIADO");
+        }
+
+        boolean validDomain = afiliadoDomains.stream().anyMatch(email::endsWith);
+        if (!validDomain) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El correo no pertenece a un dominio válido de afiliado");
+        }
+
+        user.setRol("AFILIADO");
         userRepository.save(user);
 
         UserResponseRegisterDTO response = new UserResponseRegisterDTO();
@@ -57,45 +101,82 @@ public class UsuarioServiceimpl implements UsuarioService {
         response.setEmail(user.getEmail());
         response.setRol(user.getRol());
 
-
         return response;
     }
 
     @Override
     public LoginResponseDTO login(UserLoginDTO dto) {
-        Usuario user = userRepository.findByEmail(dto.getEmail())
-                .orElseThrow(() -> new RuntimeException("EMAIL_NOT_FOUND"));
-        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            throw new RuntimeException("INVALID_PASSWORD");
+        try {
+            // 1. Primero comprobar si el correo existe
+            Usuario user = userRepository.findByEmail(dto.getEmail())
+                    .orElseThrow(() -> new RuntimeException("EMAIL_NOT_FOUND"));
+            Authentication authentication = authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword())
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String token = jwtUtil.generateToken(user.getEmail());
+            RefreshToken refresh = refreshTokenService.crearRefreshToken(user);
+
+            LoginResponseDTO response = new LoginResponseDTO();
+            response.setId(user.getId());
+            response.setNombre(user.getNombre());
+            response.setEmail(user.getEmail());
+            response.setRol(user.getRol().toUpperCase());
+            response.setToken(token);
+            response.setRefreshToken(refresh.getToken());
+            response.setMensaje("Inicio de sesión exitoso");
+
+            return response;
+
+        } catch (BadCredentialsException e) {
+            throw new IllegalArgumentException("INVALID_PASSWORD");
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("LOGIN_ERROR");
         }
-
-        Authentication auth = authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword())
-        );
-        SecurityContextHolder.getContext().setAuthentication(auth);
-
-        // Genera el token
-        String token = jwtUtil.generateToken(user.getEmail());
-
-        LoginResponseDTO response = new LoginResponseDTO();
-        response.setId(user.getId());
-        response.setNombre(user.getNombre());
-        response.setEmail(user.getEmail());
-        response.setRol(user.getRol());
-        response.setToken(token);
-        response.setMensaje("Inicio de sesión exitoso");
-
-        return response;
     }
+
 
 
     @Override
     public void OlvideContraseña(OlvideContraseñaDTO request) {
-        try {
-            Usuario usuario = usuarioDAO.buscarPorCorreo(request.getEmail());
-            System.out.println("Simulando envío de correo de recuperación a: " + usuario.getEmail());
-        } catch (Exception e) {
+        Usuario usuario = usuarioDAO.buscarPorCorreo(request.getEmail());
+        if (usuario == null) {
             throw new RuntimeException("No se encontró ningún usuario con ese correo");
+        }
+
+        // Generar token de recuperación
+        String token = UUID.randomUUID().toString();
+        usuario.setResetToken(token);
+        usuario.setResetTokenExpiration(LocalDateTime.now().plusHours(1));
+        usuarioDAO.actualizar(usuario);
+
+        // Enviar correo con token
+        sendResetEmail(usuario.getEmail(), token);
+    }
+
+    private void sendResetEmail(String email, String token) {
+        String resetLink = "http://localhost:4200/auth/reset-password?token=" + token;
+
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+            helper.setTo(email);
+            helper.setSubject("Restablecer contraseña");
+
+            String html = "<p>Haz click en el siguiente enlace para restablecer tu contraseña:</p>"
+                    + "<p><a href=\"" + resetLink + "\">Restablecer contraseña</a></p>"
+                    + "<br>"
+                    + "<p>Si el enlace no funciona copia y pega este link en el navegador:</p>"
+                    + "<p>" + resetLink + "</p>";
+
+            helper.setText(html, true); // IMPORTANTE → es HTML
+
+            mailSender.send(mimeMessage);
+        } catch (Exception e) {
+            throw new RuntimeException("Error enviando correo: " + e.getMessage());
         }
     }
 
@@ -105,62 +186,53 @@ public class UsuarioServiceimpl implements UsuarioService {
             throw new IllegalArgumentException("Las contraseñas no coinciden");
         }
 
-        Usuario usuario = usuarioDAO.buscarPorCorreo(request.getEmail());
-
+        Usuario usuario = usuarioDAO.buscarPorResetToken(request.getToken());
         if (usuario == null) {
-            throw new RuntimeException("No existe un usuario con ese correo");
+            throw new RuntimeException("Token inválido");
         }
 
-        try {
-            usuario.setPassword(request.getNewPassword());
-            usuarioDAO.actualizar(usuario);
-        } catch (Exception e) {
-            throw new RuntimeException("Error interno al actualizar la contraseña");
+        if (usuario.getResetTokenExpiration().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Token expirado");
         }
+
+        usuario.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        usuario.setResetToken(null);
+        usuario.setResetTokenExpiration(null);
+        usuarioDAO.actualizar(usuario);
     }
+
+    // Métodos de usuario admin
     private UsuarioResponseDTO mapToResponseDTO(Usuario usuario) {
-        return new UsuarioResponseDTO(
-                usuario.getId(),
-                usuario.getNombre(),
-                usuario.getEmail(),
-                usuario.getRol(),
-                "listado"
-        );
+        return new UsuarioResponseDTO(usuario.getId(), usuario.getNombre(),
+                usuario.getEmail(), usuario.getRol(), "listado");
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UsuarioResponseDTO> listarUsuarios() {
-        List<Usuario> usuarios = usuarioDAO.listarTodos();
-        return usuarios.stream()
-                .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
+        return usuarioDAO.listarTodos().stream().map(this::mapToResponseDTO).collect(Collectors.toList());
     }
 
-
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public UsuarioResponseDTO obtenerUsuarioPorId(Long id) {
         Usuario usuario = usuarioDAO.buscarPorId(id);
-        if (usuario == null) return null;
-        return mapToResponseDTO(usuario);
+        return usuario != null ? mapToResponseDTO(usuario) : null;
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public UsuarioResponseDTO actualizarUsuario(Long id, usuarioDTO dto) {
         Usuario usuario = usuarioDAO.buscarPorId(id);
-        if (usuario == null) {
-            return null;
-        }
-
-        //si el usuario existe se acualiza
+        if (usuario == null) return null;
         usuario.setNombre(dto.getNombre());
         usuario.setEmail(dto.getEmail());
         usuario.setRol(dto.getRol());
-        Usuario actualizado = usuarioDAO.actualizar(usuario);
-        return mapToResponseDTO(actualizado);
+        return mapToResponseDTO(usuarioDAO.actualizar(usuario));
     }
 
-
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public boolean eliminarUsuario(Long id) {
         Usuario usuario = usuarioDAO.buscarPorId(id);
         if (usuario != null) {
@@ -170,10 +242,3 @@ public class UsuarioServiceimpl implements UsuarioService {
         return false;
     }
 }
-
-
-
-
-
-
-

@@ -1,7 +1,7 @@
 package com.sistema_reservas.service;
 
 import com.sistema_reservas.controller.dto.*;
-import com.sistema_reservas.dao.usuarioDAO;
+import com.sistema_reservas.dao.UsuarioDAO;
 import com.sistema_reservas.model.Usuario;
 import com.sistema_reservas.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +22,7 @@ class UsuarioServiceImplTest {
     private UserRepository userRepository;
 
     @Mock
-    private usuarioDAO usuarioDAO;
+    private UsuarioDAO usuarioDAO;
 
     @InjectMocks
     private UsuarioServiceimpl usuarioService;

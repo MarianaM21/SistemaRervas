@@ -11,7 +11,7 @@ import java.util.List;
 
 @Repository
 @Transactional
-public class usuarioDAO {
+public class UsuarioDAO {
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -54,7 +54,21 @@ public class usuarioDAO {
         Usuario usuario = entityManager.find(Usuario.class, id);
         if (usuario != null) {
             entityManager.remove(usuario);
+            System.out.println(">>> USUARIO ELIMINADO");
         }
     }
+
+    // Buscar usuario por reset token
+    public Usuario buscarPorResetToken(String token) {
+        try {
+            String jpql = "SELECT u FROM Usuario u WHERE u.resetToken = :token";
+            return entityManager.createQuery(jpql, Usuario.class)
+                    .setParameter("token", token)
+                    .getSingleResult();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 
 }
