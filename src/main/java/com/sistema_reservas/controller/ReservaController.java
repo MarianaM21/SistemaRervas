@@ -64,7 +64,28 @@ public class ReservaController {
         return ResponseEntity.ok(reservaMapper.toResponseDTO(reserva));
     }
 
-    // Crear reserva →
+    // Mis reservas
+    @GetMapping("/mis-reservas")
+    @PreAuthorize("hasAnyRole('USER','AFILIADO')")
+    public ResponseEntity<List<ReservaResponseDTO>> listarMisReservas(Authentication auth) {
+        try {
+            String email = auth.getName(); // email del usuario autenticado
+
+            List<Reserva> reservas = reservaServiceimpl.listarReservasPorEmailUsuario(email);
+
+            List<ReservaResponseDTO> response = reservas.stream()
+                    .map(reservaMapper::toResponseDTO)
+                    .toList();
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+    // Crear reserva
     @PostMapping
     @PreAuthorize("hasAnyRole('USER','AFILIADO','ADMIN')")
     public ResponseEntity<ReservaResponseDTO> guardarReserva(@RequestBody ReservaDTO dto, Authentication auth) {
@@ -77,21 +98,39 @@ public class ReservaController {
                         .body(new ReservaResponseDTO("Error: Comprueba el Id de espacio o usuario"));
             }
 
-            // Validación: un usuario normal no puede crear reservas para otro usuario
-            if (!auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-                if (!usuario.getEmail().equals(auth.getName())) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(new ReservaResponseDTO("No puedes crear reserva para otro usuario"));
-                }
+            boolean esAdmin = auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+            if (!esAdmin && !usuario.getEmail().equals(auth.getName())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new ReservaResponseDTO("No puedes crear reserva para otro usuario"));
+            }
+            String estadoEspacio = espacio.getEstado() != null
+                    ? espacio.getEstado().trim().toLowerCase()
+                    : "";
+
+            if (estadoEspacio.contains("ocup") || estadoEspacio.contains("reserv")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ReservaResponseDTO("El recurso no está disponible para reservar."));
             }
 
+            // Crear la reserva desde el DTO
             Reserva reserva = reservaMapper.toEntity(dto);
             reserva.setUsuario(usuario);
             reserva.setEspacio(espacio);
 
+            if (reserva.getEstado() == null || reserva.getEstado().isBlank()) {
+                reserva.setEstado("PENDIENTE");
+            }
+
+            espacio.setEstado("RESERVADO");
+            espacioDAO.guardar(espacio);
+
+            // Guardar la reserva
             Reserva nueva = reservaServiceimpl.guardarReserva(reserva);
             ReservaResponseDTO responseDTO = reservaMapper.toResponseDTO(nueva);
             responseDTO.setMensaje("Reserva creada exitosamente");
+
             return ResponseEntity.ok(responseDTO);
 
         } catch (Exception e) {
@@ -112,10 +151,21 @@ public class ReservaController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(new ReservaResponseDTO("Reserva no encontrada"));
             }
+            if (dto.getFecha() != null) {
+                reservaExistente.setFecha(dto.getFecha());
+            }
 
-            reservaExistente.setFecha(dto.getFecha());
-            reservaExistente.setEstado(dto.getEstado());
+            if (dto.getEstado() != null) {
+                reservaExistente.setEstado(dto.getEstado());
+                if (dto.getEstado().equalsIgnoreCase("CANCELADA")
+                        || dto.getEstado().equalsIgnoreCase("FINALIZADA")) {
 
+                    Espacio espacioAsociado = reservaExistente.getEspacio();
+                    if (espacioAsociado != null) {
+                        espacioAsociado.setEstado("DISPONIBLE");
+                    }
+                }
+            }
             if (dto.getUsuarioId() != null) {
                 Usuario usuario = usuarioDAO.buscarPorId(dto.getUsuarioId());
                 if (usuario == null) {
@@ -125,6 +175,7 @@ public class ReservaController {
                 reservaExistente.setUsuario(usuario);
             }
 
+            // Espacio
             if (dto.getEspacioId() != null) {
                 Espacio espacio = espacioDAO.buscarPorId(dto.getEspacioId());
                 if (espacio == null) {
@@ -145,7 +196,7 @@ public class ReservaController {
         }
     }
 
-    // Filtrar reservas → solo ADMIN
+    // Filtrar reservas
     @GetMapping("/filtrar")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ReservaResponseDTO>> listarPorEstadoYFecha(
@@ -162,14 +213,36 @@ public class ReservaController {
         }
     }
     @DeleteMapping("/eliminar/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @reservaSecurity.esPropietario(#id, authentication.name)")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('AFILIADO') && @reservaSecurity.esPropietario(#id, authentication.name))")
     public ResponseEntity<?> eliminarReserva(@PathVariable Long id) {
-        boolean eliminado = reservaServiceimpl.eliminarReserva(id);
-        if (eliminado)
-            return ResponseEntity.ok(Map.of("mensaje", "Reserva eliminada"));
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("error", "Reserva no encontrada"));
-    }
+        try {
+            Reserva reserva = reservaServiceimpl.obtenerReservaPorId(id);
 
+            if (reserva == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Reserva no encontrada"));
+            }
+
+            // Liberar el espacio automáticamente al cancelar
+            Espacio espacio = reserva.getEspacio();
+            if (espacio != null) {
+                espacio.setEstado("DISPONIBLE");
+                espacioDAO.guardar(espacio); //
+            }
+
+            boolean eliminado = reservaServiceimpl.eliminarReserva(id);
+
+            if (eliminado) {
+                return ResponseEntity.ok(Map.of("mensaje", "Reserva eliminada"));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Reserva no encontrada"));
+            }
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
 
 }

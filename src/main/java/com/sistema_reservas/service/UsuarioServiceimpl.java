@@ -59,7 +59,9 @@ public class UsuarioServiceimpl implements UsuarioService {
         String rol = "USER"; // Rol por defecto
 
         // Dominios permitidos para AFILIADO
-        List<String> afiliadoDomains = List.of("@empresa.com", "@universidad.edu");
+        List<String> afiliadoDomains = List.of("@empresa.com", "@universidad.edu.co", "@test.com");
+
+
         if (afiliadoDomains.stream().anyMatch(email::endsWith)) {
             rol = "AFILIADO";
         }
@@ -107,7 +109,7 @@ public class UsuarioServiceimpl implements UsuarioService {
     @Override
     public LoginResponseDTO login(UserLoginDTO dto) {
         try {
-            // 1. Primero comprobar si el correo existe
+            //comprueba si el correo existe
             Usuario user = userRepository.findByEmail(dto.getEmail())
                     .orElseThrow(() -> new RuntimeException("EMAIL_NOT_FOUND"));
             Authentication authentication = authManager.authenticate(
@@ -151,8 +153,6 @@ public class UsuarioServiceimpl implements UsuarioService {
         usuario.setResetToken(token);
         usuario.setResetTokenExpiration(LocalDateTime.now().plusHours(1));
         usuarioDAO.actualizar(usuario);
-
-        // Enviar correo con token
         sendResetEmail(usuario.getEmail(), token);
     }
 
@@ -203,9 +203,16 @@ public class UsuarioServiceimpl implements UsuarioService {
 
     // Métodos de usuario admin
     private UsuarioResponseDTO mapToResponseDTO(Usuario usuario) {
-        return new UsuarioResponseDTO(usuario.getId(), usuario.getNombre(),
-                usuario.getEmail(), usuario.getRol(), "listado");
+        return new UsuarioResponseDTO(
+                usuario.getId(),
+                usuario.getNombre(),
+                usuario.getEmail(),
+                usuario.getRol(),
+                "listado",
+                usuario.getTelefono()
+        );
     }
+
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
@@ -241,4 +248,69 @@ public class UsuarioServiceimpl implements UsuarioService {
         }
         return false;
     }
+
+    @Override
+    public UsuarioResponseDTO obtenerPorEmail(String email) {
+        Usuario usuario = userRepository.findByEmail(email.toLowerCase())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+
+        return new UsuarioResponseDTO(
+                usuario.getId(),
+                usuario.getNombre(),
+                usuario.getEmail(),
+                usuario.getRol(),
+                "perfil",
+                usuario.getTelefono()
+        );
+    }
+
+    @Override
+    public UsuarioResponseDTO actualizarMiUsuario(String email, usuarioDTO dto) {
+        Usuario usuario = userRepository.findByEmail(email.toLowerCase())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+
+        usuario.setNombre(dto.getNombre());
+        usuario.setEmail(dto.getEmail());
+        usuario.setTelefono(dto.getTelefono());
+
+        userRepository.save(usuario);
+
+        return new UsuarioResponseDTO(
+                usuario.getId(),
+                usuario.getNombre(),
+                usuario.getEmail(),
+                usuario.getRol(),
+                "perfil actualizado",
+                usuario.getTelefono()
+        );
+    }
+
+    @Override
+    public void cambiarMiPassword(CambioPasswordDTO dto) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Usuario usuario = userRepository.findByEmail(email.toLowerCase())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+
+        if (!passwordEncoder.matches(dto.getPasswordActual(), usuario.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Contraseña actual incorrecta");
+        }
+
+        usuario.setPassword(passwordEncoder.encode(dto.getNuevaPassword()));
+        userRepository.save(usuario);
+    }
+
+    @Override
+    public void cerrarSesionesActuales() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Usuario usuario = userRepository.findByEmail(email.toLowerCase())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+        try {
+            refreshTokenService.eliminarTokensDeUsuario(usuario.getId());
+        } catch (Exception e) {
+            System.out.println("No existe el método eliminarTokensDeUsuario, ignorando...");
+        }
+    }
+
 }

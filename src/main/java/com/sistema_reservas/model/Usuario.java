@@ -20,6 +20,9 @@ public class Usuario {
 
     private String password;
 
+    @Column(name = "telefono")
+    private String telefono;
+
     @Column(name = "rol")
     private String rol;
 
@@ -39,4 +42,7 @@ public class Usuario {
 
     public String getRol() {return rol;}
     public void setRol(String rol) {this.rol = rol;}
+
+    public String getTelefono() { return telefono; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
 }

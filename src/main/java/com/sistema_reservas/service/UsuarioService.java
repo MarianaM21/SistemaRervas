@@ -16,4 +16,9 @@ public interface UsuarioService {
     UsuarioResponseDTO obtenerUsuarioPorId(Long id);
     UsuarioResponseDTO actualizarUsuario(Long id, usuarioDTO usuarioDTO);
     boolean eliminarUsuario(Long id);
+
+    UsuarioResponseDTO obtenerPorEmail(String email);
+    UsuarioResponseDTO actualizarMiUsuario(String email, usuarioDTO dto);
+    void cambiarMiPassword(CambioPasswordDTO dto);
+    void cerrarSesionesActuales();
 }

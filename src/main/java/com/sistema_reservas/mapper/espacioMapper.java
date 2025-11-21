@@ -13,6 +13,9 @@ public class espacioMapper {
                 e.getTipo(),
                 e.getCapacidad(),
                 e.getEstado(),
+                e.getDescripcion(),
+                e.getUbicacion(),
+                e.getCaracteristicas(),
                 mensaje
         );
     }
@@ -24,6 +27,9 @@ public class espacioMapper {
         e.setTipo(dto.getTipo());
         e.setCapacidad(dto.getCapacidad());
         e.setEstado(dto.getEstado());
+        e.setDescripcion(dto.getDescripcion());
+        e.setUbicacion(dto.getUbicacion());
+        e.setCaracteristicas(dto.getCaracteristicas());
         return e;
     }
 }

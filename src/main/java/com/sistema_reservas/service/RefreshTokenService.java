@@ -45,7 +45,6 @@ public class RefreshTokenService {
     }
 
     //Valida un refresh token existente.
-
     public RefreshToken validarRefreshToken(String token) {
         RefreshToken refresh = refreshTokenRepository.findByToken(token)
                 .orElseThrow(() -> new RuntimeException("Refresh token no existe"));
@@ -71,5 +70,15 @@ public class RefreshTokenService {
         refresh.setRevocado(true);
         refreshTokenRepository.save(refresh);
     }
+
+    @Transactional
+    public void eliminarTokensDeUsuario(Long usuarioId) {
+        Usuario usuario = userRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        refreshTokenRepository.findByUsuario(usuario)
+                .ifPresent(refreshTokenRepository::delete);
+    }
+
 }
 

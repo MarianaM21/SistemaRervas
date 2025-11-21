@@ -19,6 +19,9 @@ import static org.mockito.Mockito.*;
 class UsuarioServiceImplTest {
 
     @Mock
+    private RefreshTokenService refreshTokenService;
+
+    @Mock
     private UserRepository userRepository;
 
     @Mock
@@ -118,7 +121,8 @@ class UsuarioServiceImplTest {
     // 🔹 Test: Actualizar usuario existente (corregido)
     @Test
     void testActualizarUsuario() {
-        usuarioDTO dto = new usuarioDTO(1L, "Pedro", "pedro@test.com", "admin", null);
+        usuarioDTO dto = new usuarioDTO(1L, "Pedro", "pedro@test.com", "admin", null, null);
+
 
         when(usuarioDAO.buscarPorId(1L)).thenReturn(usuario);
         when(usuarioDAO.actualizar(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -127,7 +131,7 @@ class UsuarioServiceImplTest {
 
         assertNotNull(result);
         assertEquals("Pedro", result.getNombre());
-        assertEquals("listado", result.getMensaje()); // ✅ coincide con el código real
+        assertEquals("listado", result.getMensaje());
         verify(usuarioDAO, times(1)).actualizar(any(Usuario.class));
     }
 
@@ -136,12 +140,15 @@ class UsuarioServiceImplTest {
     void testActualizarUsuarioNoExistente() {
         when(usuarioDAO.buscarPorId(99L)).thenReturn(null);
 
-        UsuarioResponseDTO result = usuarioService.actualizarUsuario(99L, new usuarioDTO(99L, "X", "x@test.com", "user", null));
+        UsuarioResponseDTO result = usuarioService.actualizarUsuario(
+                99L,
+                new usuarioDTO(99L, "X", "x@test.com", "user", null, null)
+        );
 
         assertNull(result);
     }
 
-    // 🔹 Test: Eliminar usuario existente
+    // Test: Eliminar usuario existente
     @Test
     void testEliminarUsuarioExistente() {
         when(usuarioDAO.buscarPorId(1L)).thenReturn(usuario);

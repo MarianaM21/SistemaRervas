@@ -1,11 +1,13 @@
 package com.sistema_reservas.controller;
 
+import com.sistema_reservas.controller.dto.CambioPasswordDTO;
 import com.sistema_reservas.controller.dto.usuarioDTO;
 import com.sistema_reservas.controller.dto.UsuarioResponseDTO;
 import com.sistema_reservas.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,5 +68,34 @@ public class UsuarioController {
         }
         return ResponseEntity.ok("Se eliminó correctamente el usuario");
     }
+
+    // Obtener perfil del usuario autenticado
+    @GetMapping("/me")
+    public ResponseEntity<UsuarioResponseDTO> obtenerMiPerfil() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(usuarioService.obtenerPorEmail(email));
+    }
+
+    // Actualizar perfil del usuario autenticado
+    @PutMapping("/me")
+    public ResponseEntity<UsuarioResponseDTO> actualizarMiPerfil(@RequestBody usuarioDTO dto) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(usuarioService.actualizarMiUsuario(email, dto));
+    }
+
+    // Cambiar contraseña del usuario autenticado
+    @PutMapping("/me/password")
+    public ResponseEntity<String> cambiarPassword(@RequestBody CambioPasswordDTO dto) {
+        usuarioService.cambiarMiPassword(dto);
+        return ResponseEntity.ok("Contraseña actualizada correctamente");
+    }
+
+    // Cerrar sesiones activas
+    @PostMapping("/me/cerrar-sesiones")
+    public ResponseEntity<String> cerrarSesiones() {
+        usuarioService.cerrarSesionesActuales();
+        return ResponseEntity.ok("Sesiones cerradas correctamente");
+    }
+
 }
 

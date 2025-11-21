@@ -52,4 +52,12 @@ public class reservaDAO {
         return query.getResultList();
     }
 
+    public List<Reserva> listarPorEmailUsuario(String email) {
+        String jpql = "SELECT r FROM Reserva r WHERE r.usuario.email = :email ORDER BY r.fecha DESC";
+        return entityManager.createQuery(jpql, Reserva.class)
+                .setParameter("email", email)
+                .getResultList();
+    }
+
+
 }

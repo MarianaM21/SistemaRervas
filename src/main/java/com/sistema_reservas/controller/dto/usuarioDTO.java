@@ -7,15 +7,17 @@ public class usuarioDTO {
     private String email;
     private String rol;
     private String mensaje;
+    private String telefono;
 
 
 
-    public usuarioDTO(Long id, String nombre, String email, String rol, String mensaje) {
+    public usuarioDTO(Long id, String nombre, String email, String rol, String mensaje, String telefono) {
         this.id = id;
         this.nombre = nombre;
         this.email = email;
         this.rol = rol;
         this.mensaje = mensaje;
+        this.telefono = telefono;
     }
 
 
@@ -35,5 +37,8 @@ public class usuarioDTO {
 
     public String getMensaje() { return mensaje;}
     public void setMensaje(String mensaje) { this.mensaje = mensaje; }
+
+    public String getTelefono() { return telefono; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
 }
 

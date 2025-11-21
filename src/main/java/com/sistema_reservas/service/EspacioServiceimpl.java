@@ -32,21 +32,27 @@ public class EspacioServiceimpl implements EspacioService {
 public List<EspacioResponseDTO> listarEspacios() {
     return espacioDAO.listarTodos().stream()
             .map(e -> espacioMapper.toResponseDTO(e, ""))
-            .toList();  // ✅ más moderno y recomendado
+            .toList();
 }
 
 //actalizar espacio
-    @Override
-    public EspacioResponseDTO actualizarEspacio(Long id, EspacioDTO dto) {
+@Override
+public EspacioResponseDTO actualizarEspacio(Long id, EspacioDTO dto) {
     Espacio e = espacioDAO.buscarPorId(id);
-    if (e == null) throw new RuntimeException("Espacio no encontrado"); // se maneja en controlador
+    if (e == null) throw new RuntimeException("Espacio no encontrado");
+
     e.setNombre(dto.getNombre());
     e.setTipo(dto.getTipo());
     e.setCapacidad(dto.getCapacidad());
     e.setEstado(dto.getEstado());
+    e.setDescripcion(dto.getDescripcion());
+    e.setUbicacion(dto.getUbicacion());
+    e.setCaracteristicas(dto.getCaracteristicas());
+
     espacioDAO.actualizar(e);
     return espacioMapper.toResponseDTO(e, "Espacio actualizado exitosamente");
 }
+
 
     //eliminar espacio
     @Override

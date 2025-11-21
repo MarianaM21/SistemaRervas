@@ -10,10 +10,16 @@ public class Espacio {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_espacio")
     private Long idEspacio;
+
     private String nombre;
     private String tipo;
     private int capacidad;
     private String estado;
+
+    // NUEVOS CAMPOS
+    private String descripcion;
+    private String ubicacion;
+    private String caracteristicas;
 
     public Espacio() {}
 
@@ -39,4 +45,13 @@ public class Espacio {
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+
+    public String getDescripcion() { return descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+
+    public String getUbicacion() { return ubicacion; }
+    public void setUbicacion(String ubicacion) { this.ubicacion = ubicacion; }
+
+    public String getCaracteristicas() { return caracteristicas; }
+    public void setCaracteristicas(String caracteristicas) { this.caracteristicas = caracteristicas; }
 }

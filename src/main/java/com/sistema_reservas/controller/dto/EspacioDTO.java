@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 
 public class EspacioDTO {
     private Long id;
+
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
@@ -19,10 +20,14 @@ public class EspacioDTO {
     @NotBlank(message = "El estado es obligatorio")
     private String estado;
 
+    // NUEVOS CAMPOS OPCIONALES
+    private String descripcion;
+    private String ubicacion;
+    private String caracteristicas;
 
     public EspacioDTO() {}
 
-    // Getters y setters
+    // getters / setters...
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -37,4 +42,13 @@ public class EspacioDTO {
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+
+    public String getDescripcion() { return descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+
+    public String getUbicacion() { return ubicacion; }
+    public void setUbicacion(String ubicacion) { this.ubicacion = ubicacion; }
+
+    public String getCaracteristicas() { return caracteristicas; }
+    public void setCaracteristicas(String caracteristicas) { this.caracteristicas = caracteristicas; }
 }
