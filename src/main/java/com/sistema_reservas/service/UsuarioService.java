@@ -21,4 +21,7 @@ public interface UsuarioService {
     UsuarioResponseDTO actualizarMiUsuario(String email, usuarioDTO dto);
     void cambiarMiPassword(CambioPasswordDTO dto);
     void cerrarSesionesActuales();
+
+    long contarUsuarios();
+    long contarAfiliados();
 }

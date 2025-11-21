@@ -313,4 +313,20 @@ public class UsuarioServiceimpl implements UsuarioService {
         }
     }
 
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public long contarUsuarios() {
+        return userRepository.count();
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public long contarAfiliados() {
+        return usuarioDAO.listarTodos()
+                .stream()
+                .filter(u -> "AFILIADO".equalsIgnoreCase(u.getRol()))
+                .count();
+    }
+
+
 }

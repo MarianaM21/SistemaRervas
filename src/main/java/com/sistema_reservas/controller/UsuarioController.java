@@ -7,6 +7,7 @@ import com.sistema_reservas.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
@@ -95,6 +96,21 @@ public class UsuarioController {
     public ResponseEntity<String> cerrarSesiones() {
         usuarioService.cerrarSesionesActuales();
         return ResponseEntity.ok("Sesiones cerradas correctamente");
+    }
+
+    @GetMapping("/count")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Long> contarUsuarios() {
+        long total = usuarioService.contarUsuarios();
+        return ResponseEntity.ok(total);
+    }
+
+    // Contar afiliados
+    @GetMapping("/afiliados/count")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Long> contarAfiliados() {
+        long total = usuarioService.contarAfiliados();
+        return ResponseEntity.ok(total);
     }
 
 }
